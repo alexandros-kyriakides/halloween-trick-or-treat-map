@@ -23,6 +23,7 @@ A one-night neighbourhood map for Saturday 31 October 2026. Neighbours add their
 3. In the AWS console, pick a region (e.g. Europe (Frankfurt)) and open **Amplify → Create new app → GitHub**.
    - Authorise AWS for that one repository, then pick it and the `main` branch.
    - The build settings come from `amplify.yml`; leave them as they are.
+   - Under **Advanced settings → Environment variables**, add `GROUP_CODE` with the code you will share in Viber. The deploy stops with a clear message if it's missing.
    - When asked for a service role, choose **Create and use a new service role**.
 4. **Save and deploy.** The first build takes about 5–10 minutes and creates DynamoDB, AppSync and the website.
 5. The site address is shown on the app page: `https://main.<app-id>.amplifyapp.com`. Send that link plus the group code to the Viber admin.
@@ -48,11 +49,12 @@ All entries live in one DynamoDB table: **DynamoDB → Tables → `halloween-map
 
 ## Settings
 
-Edit `amplify/settings.ts`, then commit and push:
+**Group code:** set in the Amplify console, never in the repository: **Hosting → Environment variables → `GROUP_CODE`**. Case, spaces and dashes are ignored. After changing it, redeploy (**Deployments → Redeploy this version**, or push any commit).
+
+Everything else is in `amplify/settings.ts`; edit, commit and push:
 
 | Setting | Now | Meaning |
 |---|---|---|
-| `GROUP_CODE` | see the file | Code from the Viber message. Case, spaces and dashes are ignored. |
 | `HIDE_AT` | `2026-11-01T00:00:00Z` | When the map empties and closes (02:00 Nicosia) |
 | `DELETE_AT` | `2026-11-08T00:00:00Z` | Entries are stamped to be deleted from this time (applies to entries created after the change) |
 
@@ -68,7 +70,7 @@ DynamoDB deletes the entries automatically from 8 Nov (usually within a day or t
 
 ```bash
 npm install
-npm run demo      # the site with sample homes, running the real backend logic in the browser
+npm run demo      # the site with sample homes (group code: DEMO), running the real backend logic in the browser
 npm test          # backend tests: the real AppSync resolvers against an in-memory table
 npm run lint      # checks the resolvers against AppSync's JavaScript runtime rules
 npm run typecheck

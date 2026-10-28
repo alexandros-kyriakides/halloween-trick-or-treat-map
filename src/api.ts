@@ -68,7 +68,9 @@ async function makeDemoCall(): Promise<Call> {
     import('../devsim/backend.js'),
     import('../amplify/settings.ts'),
   ]);
-  const sim = createSimBackend({ env: EVENT_SETTINGS });
+  // Demo mode uses the group code DEMO; the real code only exists in the Amplify console.
+  const env = { ...EVENT_SETTINGS, GROUP_CODE: 'DEMO' };
+  const sim = createSimBackend({ env });
   const near = (dLat: number, dLng: number) => ({ lat: 35.0757663 + dLat, lng: 33.313154 + dLng });
   const seed = [
     { ...near(0.0021, -0.0012), apartment: '101', names: 'Eleni & Andreas', buzzer: 'Papadopoulos' },
@@ -78,7 +80,7 @@ async function makeDemoCall(): Promise<Call> {
     { ...near(0.0006, 0.0041), names: 'Giorgos & Maria' },
     { ...near(-0.0042, -0.0035), names: 'The Charalambous family' },
   ];
-  for (const s of seed) await sim.call('createEntry', { groupCode: EVENT_SETTINGS.GROUP_CODE, consent: true, ...s });
+  for (const s of seed) await sim.call('createEntry', { groupCode: env.GROUP_CODE, consent: true, ...s });
   return async (field, _query, variables) => {
     await new Promise((r) => setTimeout(r, 250));
     try {

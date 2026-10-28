@@ -9,14 +9,17 @@ const CENTER = { lat: 35.0757663, lng: 33.313154 };
 // Tuesday 27 Oct 2026, 12:00 UTC - before the event closes
 const BEFORE_EVENT = Date.parse('2026-10-27T12:00:00Z');
 
+// A dummy group code; the real one only exists in the Amplify console.
+const ENV = { ...EVENT_SETTINGS, GROUP_CODE: 'TESTCODE' };
+
 let api;
 beforeEach(() => {
   clock.offsetMs = BEFORE_EVENT - Date.now();
-  api = createSimBackend({ env: EVENT_SETTINGS });
+  api = createSimBackend({ env: ENV });
 });
 
 const add = (extra = {}) =>
-  api.call('createEntry', { groupCode: '31OCT', consent: true, ...CENTER, ...extra });
+  api.call('createEntry', { groupCode: 'TESTCODE', consent: true, ...CENTER, ...extra });
 
 async function rejects(p, type) {
   await assert.rejects(p, (e) => {
@@ -42,7 +45,7 @@ test('createEntry validates group code, consent, area and lengths', async () => 
   await rejects(add({ lng: 33.30 }), 'OUTSIDE_AREA');
   await rejects(add({ notes: 'x'.repeat(201) }), 'TOO_LONG');
   await add({ notes: 'x'.repeat(200) });
-  await add({ groupCode: ' 31oct ' }); // case and spaces ignored
+  await add({ groupCode: ' testcode ' }); // case and spaces ignored
   assert.equal(api.table.size, 2);
 });
 
@@ -54,7 +57,7 @@ test('without the group code only locations are returned; never edit codes', asy
   const wrong = await api.call('listPins', { groupCode: 'nope' });
   assert.equal(wrong.groupCodeOk, false);
   assert.equal(wrong.pins[0].names, undefined);
-  const ok = await api.call('listPins', { groupCode: '31oct' });
+  const ok = await api.call('listPins', { groupCode: 'testcode' });
   assert.equal(ok.groupCodeOk, true);
   assert.equal(ok.pins[0].names, 'Maria');
   assert.equal(ok.pins[0].notes, 'side gate');
@@ -64,7 +67,7 @@ test('without the group code only locations are returned; never edit codes', asy
 test('acceptance: two apartments at one location; each controls only their own', async () => {
   const a = await add({ apartment: '101', names: 'Anna' });
   const b = await add({ apartment: '202', names: 'Babis' });
-  let list = await api.call('listPins', { groupCode: '31OCT' });
+  let list = await api.call('listPins', { groupCode: 'TESTCODE' });
   assert.equal(list.pins.length, 2);
 
   // B uses B's code on A's entry -> refused
@@ -74,7 +77,7 @@ test('acceptance: two apartments at one location; each controls only their own',
 
   // A removes theirs; B's remains
   assert.equal(await api.call('deleteEntry', { id: a.id, editCode: a.editCode }), true);
-  list = await api.call('listPins', { groupCode: '31OCT' });
+  list = await api.call('listPins', { groupCode: 'TESTCODE' });
   assert.deepEqual(list.pins.map((p) => p.apartment), ['202']);
 });
 
@@ -136,7 +139,7 @@ test('parallel guesses cannot exceed 5 per window (atomic attempt counter)', asy
   // Simulate 20 requests that all loaded the entry before any of them counted an attempt.
   const loadEntry = await import('../amplify/data/resolvers/loadEntry.js');
   const countAttempt = await import('../amplify/data/resolvers/countAttempt.js');
-  const ctxs = Array.from({ length: 20 }, () => ({ args: { id: a.id, editCode: 'X' }, env: EVENT_SETTINGS, stash: {} }));
+  const ctxs = Array.from({ length: 20 }, () => ({ args: { id: a.id, editCode: 'X' }, env: ENV, stash: {} }));
   for (const ctx of ctxs) {
     ctx.result = execute(loadEntry.request(ctx));
     loadEntry.response(ctx);
@@ -170,7 +173,7 @@ test('parallel guesses cannot exceed 5 per window (atomic attempt counter)', asy
 test('after HIDE_AT the map is empty and nothing can be changed', async () => {
   const a = await add({ names: 'Anna' });
   clock.offsetMs = Date.parse(EVENT_SETTINGS.HIDE_AT) - Date.now() + 1000;
-  const list = await api.call('listPins', { groupCode: '31OCT' });
+  const list = await api.call('listPins', { groupCode: 'TESTCODE' });
   assert.deepEqual(list, { groupCodeOk: false, closed: true, pins: [] });
   await rejects(add(), 'CLOSED');
   await rejects(api.call('updateEntry', { id: a.id, editCode: a.editCode, ...CENTER }), 'CLOSED');

@@ -24,7 +24,20 @@ const table = new Table(stack, 'EntriesTable', {
 
 backend.data.addDynamoDbDataSource('EntriesTable', table);
 
+// The group code comes from the Amplify console (Hosting -> Environment variables -> GROUP_CODE)
+// so it is never stored in the repository. Stop the deploy if it is missing.
+const groupCode = (process.env.GROUP_CODE ?? '').trim();
+if (!groupCode) {
+  throw new Error(
+    'GROUP_CODE is not set. In the Amplify console open Hosting -> Environment variables, ' +
+      'add GROUP_CODE with the code you will share in Viber, then redeploy.',
+  );
+}
+
 // Settings readable by the resolvers as ctx.env.*
-backend.data.resources.cfnResources.cfnGraphqlApi.environmentVariables = { ...EVENT_SETTINGS };
+backend.data.resources.cfnResources.cfnGraphqlApi.environmentVariables = {
+  ...EVENT_SETTINGS,
+  GROUP_CODE: groupCode,
+};
 
 new CfnOutput(stack, 'EntriesTableName', { value: table.tableName });
