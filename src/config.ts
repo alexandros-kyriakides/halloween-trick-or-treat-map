@@ -1,0 +1,23 @@
+// Map area: a 2 km x 2 km box centred on Michalis Tourapis Park, Nicosia.
+// North/south/east/west are 1 km geodesic offsets from the centre (WGS84).
+// Keep in sync with the bounds in amplify/data/resolvers/{createEntry,updateEntry}.js.
+export const CENTER: [number, number] = [35.0757663, 33.313154];
+export const BOUNDS = {
+  south: 35.0667526,
+  north: 35.08478,
+  west: 33.3021896,
+  east: 33.3241184,
+};
+
+/** Entries closer than this are shown as one pin (an apartment building, or a house with two families). */
+export const GROUP_RADIUS_M = 15;
+
+/** How often the map reloads the list of homes. */
+export const REFRESH_MS = 2 * 60 * 1000;
+
+export const OSM_TILES = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+export const OSM_ATTRIBUTION =
+  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+
+/** Must match the resolver limits in amplify/data/resolvers. */
+export const LIMITS = { apartment: 40, names: 60, buzzer: 40, notes: 200 } as const;

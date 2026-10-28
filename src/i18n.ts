@@ -1,0 +1,215 @@
+export type Lang = 'en' | 'el';
+
+const en = {
+  title: 'Trick-or-treat map',
+  when: 'Saturday 31 October, from 18:00',
+  switchTo: 'ΕΛ',
+  switchLabel: 'Ελληνικά',
+
+  bannerText: "Enter the group code from Viber to see who's taking part and to add your home.",
+  bannerButton: 'Enter code',
+  groupCodeTitle: 'Group code',
+  groupCodeHelp: 'You can find it in the Viber group message.',
+  groupCodeContinue: 'Continue',
+  groupCodeWrong: "That group code isn't right. Check the Viber message.",
+
+  addHome: 'Add my home',
+  myLocation: 'Show my location',
+  locationOutside: "You're outside the map area.",
+  locationOff: 'Location is off for this page. You can still find homes on the map.',
+
+  homesHere: (n: number) => (n === 1 ? '1 home taking part here' : `${n} homes taking part here`),
+  detailsLocked: 'Enter the group code to see names and details.',
+  apartmentShort: 'Apt / floor',
+  ringShort: 'Ring',
+  edit: 'Edit',
+  yours: 'Yours',
+  close: 'Close',
+  emptyMap: 'No homes yet. Be the first to add yours.',
+
+  placeTap: 'Tap your home on the map.',
+  placeDrag: 'Drag the pumpkin to the exact spot.',
+  placeOutside: 'That spot is outside the map area.',
+  sameBuilding: 'Same building as the pin next to it',
+  useMyLocation: 'Use my location',
+  cancel: 'Cancel',
+  next: 'Next',
+  back: 'Back',
+
+  formNew: 'Your home',
+  formEdit: 'Edit your home',
+  optional: 'optional',
+  apartment: 'Apartment / floor',
+  apartmentHint: 'e.g. 302 or 3rd floor',
+  names: "Parents' first names",
+  namesHint: 'e.g. Eleni & Andreas',
+  buzzer: 'Which bell to ring',
+  buzzerHint: 'Name on the bell or intercom',
+  notes: 'Notes',
+  notesHint: 'e.g. side gate, ring twice',
+  consent:
+    'I agree that this location will be visible to anyone with the link, and the details above to anyone with the group code. Everything is deleted automatically from 8 November 2026.',
+  addToMap: 'Add to map',
+  added: 'Added to the map',
+  saveChanges: 'Save changes',
+  saved: 'Changes saved',
+  movePin: 'Move pin',
+  remove: 'Remove my home',
+  removeConfirm: "Remove your home from the map? This can't be undone.",
+  removed: 'Removed from the map',
+
+  codeTitle: 'Your edit code',
+  codeHelp: "Keep this code. You'll need it to change or remove your home.",
+  copyCode: 'Copy code',
+  copied: 'Code copied',
+  viber: 'Send to myself on Viber',
+  share: 'Share…',
+  done: 'Done',
+  shareText: (code: string, link: string) => `My edit code for the trick-or-treat map: ${code}\n${link}`,
+
+  askCodeTitle: 'Enter your edit code',
+  askCodeHelp: 'It was shown when the home was added, for example PUMPKIN-417.',
+  askCodeLabel: 'Edit code',
+  askCodeContinue: 'Continue',
+
+  closed: 'Trick-or-treat is over. Thank you for taking part!',
+  loadFailed: "Couldn't load the map. Check your connection and try again.",
+  retry: 'Try again',
+
+  err: {
+    WRONG_CODE: (n: number) =>
+      n > 0
+        ? `That code doesn't match this home. ${n} ${n === 1 ? 'try' : 'tries'} left.`
+        : "That code doesn't match this home. Too many tries, wait 15 minutes.",
+    LOCKED: (m: number) => `Too many wrong codes. Try again in ${m} minutes.`,
+    BUSY: 'Too many tries at once. Wait a moment and try again.',
+    NOT_FOUND: 'This home is no longer on the map.',
+    OUTSIDE_AREA: 'That spot is outside the map area.',
+    TOO_LONG: 'One of the fields is too long.',
+    BAD_GROUP_CODE: "That group code isn't right. Check the Viber message.",
+    CONSENT_REQUIRED: 'Please tick the box to agree.',
+    CLOSED: 'Trick-or-treat is over. The map is closed.',
+    NETWORK: "Couldn't reach the map. Check your connection and try again.",
+    OTHER: 'Something went wrong. Please try again.',
+  },
+};
+
+type Dict = typeof en;
+
+const el: Dict = {
+  title: 'Χάρτης trick-or-treat',
+  when: 'Σάββατο 31 Οκτωβρίου, από τις 18:00',
+  switchTo: 'EN',
+  switchLabel: 'English',
+
+  bannerText: 'Βάλτε τον κωδικό της ομάδας από το Viber για να δείτε ποιοι συμμετέχουν και να προσθέσετε το σπίτι σας.',
+  bannerButton: 'Κωδικός',
+  groupCodeTitle: 'Κωδικός ομάδας',
+  groupCodeHelp: 'Θα τον βρείτε στο μήνυμα της ομάδας στο Viber.',
+  groupCodeContinue: 'Συνέχεια',
+  groupCodeWrong: 'Ο κωδικός ομάδας δεν είναι σωστός. Ελέγξτε το μήνυμα στο Viber.',
+
+  addHome: 'Προσθήκη του σπιτιού μου',
+  myLocation: 'Η τοποθεσία μου',
+  locationOutside: 'Βρίσκεστε έξω από την περιοχή του χάρτη.',
+  locationOff: 'Η τοποθεσία είναι απενεργοποιημένη για αυτή τη σελίδα. Μπορείτε να βρείτε τα σπίτια στον χάρτη.',
+
+  homesHere: (n: number) => (n === 1 ? '1 σπίτι συμμετέχει εδώ' : `${n} σπίτια συμμετέχουν εδώ`),
+  detailsLocked: 'Βάλτε τον κωδικό ομάδας για να δείτε ονόματα και λεπτομέρειες.',
+  apartmentShort: 'Διαμ. / όροφος',
+  ringShort: 'Κουδούνι',
+  edit: 'Επεξεργασία',
+  yours: 'Δικό σας',
+  close: 'Κλείσιμο',
+  emptyMap: 'Δεν υπάρχουν ακόμα σπίτια. Προσθέστε πρώτοι το δικό σας.',
+
+  placeTap: 'Πατήστε στο σπίτι σας στον χάρτη.',
+  placeDrag: 'Σύρετε την κολοκύθα στο σωστό σημείο.',
+  placeOutside: 'Αυτό το σημείο είναι έξω από την περιοχή του χάρτη.',
+  sameBuilding: 'Ίδιο κτίριο με την καρφίτσα δίπλα',
+  useMyLocation: 'Η τοποθεσία μου',
+  cancel: 'Ακύρωση',
+  next: 'Επόμενο',
+  back: 'Πίσω',
+
+  formNew: 'Το σπίτι σας',
+  formEdit: 'Επεξεργασία σπιτιού',
+  optional: 'προαιρετικό',
+  apartment: 'Διαμέρισμα / όροφος',
+  apartmentHint: 'π.χ. 302 ή 3ος όροφος',
+  names: 'Μικρά ονόματα γονιών',
+  namesHint: 'π.χ. Ελένη & Ανδρέας',
+  buzzer: 'Ποιο κουδούνι να πατήσουν',
+  buzzerHint: 'Όνομα στο κουδούνι ή θυροτηλέφωνο',
+  notes: 'Σημειώσεις',
+  notesHint: 'π.χ. πλαϊνή πόρτα, χτυπήστε δύο φορές',
+  consent:
+    'Συμφωνώ ότι αυτή η τοποθεσία θα είναι ορατή σε όποιον έχει τον σύνδεσμο και τα παραπάνω στοιχεία σε όποιον έχει τον κωδικό της ομάδας. Όλα διαγράφονται αυτόματα από τις 8 Νοεμβρίου 2026.',
+  addToMap: 'Προσθήκη στον χάρτη',
+  added: 'Προστέθηκε στον χάρτη',
+  saveChanges: 'Αποθήκευση αλλαγών',
+  saved: 'Οι αλλαγές αποθηκεύτηκαν',
+  movePin: 'Μετακίνηση',
+  remove: 'Αφαίρεση του σπιτιού μου',
+  removeConfirm: 'Να αφαιρεθεί το σπίτι σας από τον χάρτη; Δεν μπορεί να αναιρεθεί.',
+  removed: 'Αφαιρέθηκε από τον χάρτη',
+
+  codeTitle: 'Ο κωδικός επεξεργασίας σας',
+  codeHelp: 'Κρατήστε αυτόν τον κωδικό. Θα τον χρειαστείτε για να αλλάξετε ή να αφαιρέσετε το σπίτι σας.',
+  copyCode: 'Αντιγραφή κωδικού',
+  copied: 'Ο κωδικός αντιγράφηκε',
+  viber: 'Αποστολή στον εαυτό μου στο Viber',
+  share: 'Κοινοποίηση…',
+  done: 'Τέλος',
+  shareText: (code: string, link: string) => `Ο κωδικός επεξεργασίας μου για τον χάρτη trick-or-treat: ${code}\n${link}`,
+
+  askCodeTitle: 'Βάλτε τον κωδικό επεξεργασίας',
+  askCodeHelp: 'Εμφανίστηκε όταν προστέθηκε το σπίτι, για παράδειγμα PUMPKIN-417.',
+  askCodeLabel: 'Κωδικός επεξεργασίας',
+  askCodeContinue: 'Συνέχεια',
+
+  closed: 'Το trick-or-treat τελείωσε. Ευχαριστούμε για τη συμμετοχή!',
+  loadFailed: 'Ο χάρτης δεν φόρτωσε. Ελέγξτε τη σύνδεσή σας και δοκιμάστε ξανά.',
+  retry: 'Δοκιμάστε ξανά',
+
+  err: {
+    WRONG_CODE: (n: number) =>
+      n > 0
+        ? `Ο κωδικός δεν ταιριάζει με αυτό το σπίτι. ${n === 1 ? 'Απομένει 1 προσπάθεια' : `Απομένουν ${n} προσπάθειες`}.`
+        : 'Ο κωδικός δεν ταιριάζει με αυτό το σπίτι. Πολλές προσπάθειες, περιμένετε 15 λεπτά.',
+    LOCKED: (m: number) => `Πάρα πολλοί λάθος κωδικοί. Δοκιμάστε ξανά σε ${m} λεπτά.`,
+    BUSY: 'Πολλές προσπάθειες ταυτόχρονα. Περιμένετε λίγο και δοκιμάστε ξανά.',
+    NOT_FOUND: 'Αυτό το σπίτι δεν είναι πια στον χάρτη.',
+    OUTSIDE_AREA: 'Αυτό το σημείο είναι έξω από την περιοχή του χάρτη.',
+    TOO_LONG: 'Ένα από τα πεδία είναι πολύ μεγάλο.',
+    BAD_GROUP_CODE: 'Ο κωδικός ομάδας δεν είναι σωστός. Ελέγξτε το μήνυμα στο Viber.',
+    CONSENT_REQUIRED: 'Τσεκάρετε το κουτάκι για να συμφωνήσετε.',
+    CLOSED: 'Το trick-or-treat τελείωσε. Ο χάρτης έκλεισε.',
+    NETWORK: 'Δεν υπάρχει σύνδεση με τον χάρτη. Ελέγξτε τη σύνδεσή σας και δοκιμάστε ξανά.',
+    OTHER: 'Κάτι πήγε στραβά. Δοκιμάστε ξανά.',
+  },
+};
+
+export const dict: Record<Lang, Dict> = { en, el };
+export type T = Dict;
+
+export function errorText(t: T, e: unknown): string {
+  const err = e as { type?: string; info?: Record<string, unknown> | null };
+  switch (err?.type) {
+    case 'WRONG_CODE':
+      return t.err.WRONG_CODE(Number(err.info?.triesLeft ?? 0));
+    case 'LOCKED':
+      return t.err.LOCKED(Number(err.info?.waitMinutes ?? 15));
+    case 'BUSY':
+    case 'NOT_FOUND':
+    case 'OUTSIDE_AREA':
+    case 'TOO_LONG':
+    case 'BAD_GROUP_CODE':
+    case 'CONSENT_REQUIRED':
+    case 'CLOSED':
+    case 'NETWORK':
+      return t.err[err.type];
+    default:
+      return t.err.OTHER;
+  }
+}
