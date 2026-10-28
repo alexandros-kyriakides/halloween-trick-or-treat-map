@@ -3,7 +3,7 @@
 A one-night neighbourhood map for Saturday 31 October 2026. Neighbours add their home (or apartment) to the map; parents use it on the night to find homes taking part.
 
 - No accounts. Everyone uses the same link.
-- The **group code** (`31OCT`, shared in Viber) shows names and details and lets people add their home. Without it, visitors see only the pumpkins on the map.
+- The **group code** (shared in Viber) shows names and details and lets people add their home. Without it, visitors see only the pumpkins on the map.
 - Each home gets an **edit code** such as `PUMPKIN-417`, shown on screen once, with Copy and Send-to-Viber buttons. Codes are remembered on the device that created them, so editing usually needs no typing.
 - After 5 wrong edit codes, a home stops accepting codes for 15 minutes.
 - At **1 Nov 02:00** (Nicosia) the map empties and stops accepting changes. Entries are deleted automatically from **8 Nov**.
@@ -52,7 +52,7 @@ Edit `amplify/settings.ts`, then commit and push:
 
 | Setting | Now | Meaning |
 |---|---|---|
-| `GROUP_CODE` | `31OCT` | Code from the Viber message. Case, spaces and dashes are ignored. |
+| `GROUP_CODE` | see the file | Code from the Viber message. Case, spaces and dashes are ignored. |
 | `HIDE_AT` | `2026-11-01T00:00:00Z` | When the map empties and closes (02:00 Nicosia) |
 | `DELETE_AT` | `2026-11-08T00:00:00Z` | Entries are stamped to be deleted from this time (applies to entries created after the change) |
 
