@@ -6,8 +6,10 @@ customHeaders:
         value: "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://tile.openstreetmap.org; connect-src 'self' https://*.amazonaws.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
       - key: X-Robots-Tag
         value: noindex, nofollow
+      # Not no-referrer: OpenStreetMap's tile policy requires a Referer and may block tiles
+      # without one. This value sends only the site origin cross-origin (never the #edit link).
       - key: Referrer-Policy
-        value: no-referrer
+        value: strict-origin-when-cross-origin
       - key: X-Content-Type-Options
         value: nosniff
       - key: Strict-Transport-Security

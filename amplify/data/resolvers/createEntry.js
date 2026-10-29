@@ -57,9 +57,21 @@ function cleanText(value, field) {
   return s;
 }
 
+const HEX = '0123456789abcdef';
+
+// 32 random bits from a UUID v4 (util.autoId), instead of Math.random(), whose generator
+// is not documented as secure. 2^32 is so much larger than 100 and 1000 that the
+// modulo bias is below 1 in 40 million.
+function randomInt(limit) {
+  // The first 8 characters of a UUID are hex digits (the first dash is at index 8).
+  const hex = util.autoId().toLowerCase();
+  const value = [0, 1, 2, 3, 4, 5, 6, 7].reduce((acc, i) => acc * 16 + HEX.indexOf(hex.charAt(i)), 0);
+  return value % limit;
+}
+
 function makeCode() {
-  const word = WORDS[Math.floor(Math.random() * WORDS.length)];
-  const n = Math.floor(Math.random() * 1000);
+  const word = WORDS[randomInt(WORDS.length)];
+  const n = randomInt(1000);
   const digits = n < 10 ? `00${n}` : n < 100 ? `0${n}` : `${n}`;
   return `${word}-${digits}`;
 }

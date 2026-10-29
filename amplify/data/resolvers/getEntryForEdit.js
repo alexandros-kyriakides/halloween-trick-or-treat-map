@@ -15,7 +15,7 @@ function requireCorrectCode(ctx) {
     util.error(
       triesLeft > 0
         ? `Wrong edit code. ${triesLeft} tries left.`
-        : 'Wrong edit code. Too many attempts, try again in 15 minutes.',
+        : 'Wrong edit code. Too many attempts, try again later.',
       'WRONG_CODE',
       null,
       { triesLeft },
@@ -41,8 +41,8 @@ export function request(ctx) {
     operation: 'UpdateItem',
     key: util.dynamodb.toMapValues({ id: ctx.stash.entry.id }),
     update: {
-      expression: 'REMOVE #w, #a',
-      expressionNames: { '#w': 'attemptWindowStart', '#a': 'attempts' },
+      expression: 'REMOVE #w, #a, #s',
+      expressionNames: { '#w': 'attemptWindowStart', '#a': 'attempts', '#s': 'strikes' },
     },
     condition: {
       expression: '#c = :c',

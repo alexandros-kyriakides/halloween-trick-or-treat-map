@@ -22,7 +22,7 @@ function requireCorrectCode(ctx) {
     util.error(
       triesLeft > 0
         ? `Wrong edit code. ${triesLeft} tries left.`
-        : 'Wrong edit code. Too many attempts, try again in 15 minutes.',
+        : 'Wrong edit code. Too many attempts, try again later.',
       'WRONG_CODE',
       null,
       { triesLeft },
@@ -83,13 +83,14 @@ export function request(ctx) {
   requireCorrectCode(ctx);
 
   const sets = ['#lat = :lat', '#lng = :lng', '#updatedAt = :updatedAt'];
-  const removes = ['#w', '#a'];
+  const removes = ['#w', '#a', '#s'];
   const names = {
     '#lat': 'lat',
     '#lng': 'lng',
     '#updatedAt': 'updatedAt',
     '#w': 'attemptWindowStart',
     '#a': 'attempts',
+    '#s': 'strikes',
   };
   const values = { ':lat': args.lat, ':lng': args.lng, ':updatedAt': util.time.nowISO8601() };
 

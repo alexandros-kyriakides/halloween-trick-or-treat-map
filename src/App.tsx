@@ -598,6 +598,8 @@ function FormSheet(props: {
   const { t, sheet } = props;
   const [f, setF] = useState<Fields>(sheet.fields);
   const [consent, setConsent] = useState(sheet.mode === 'edit');
+  // In-page confirmation: window.confirm() can be silently suppressed in in-app browsers (Viber).
+  const [confirmingRemove, setConfirmingRemove] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, run] = useBusy();
   const attempt = (fn: () => Promise<void>) =>
@@ -645,19 +647,27 @@ function FormSheet(props: {
       <button className="btn btn-primary btn-wide" disabled={busy || !consent}>
         {sheet.mode === 'new' ? t.addToMap : t.saveChanges}
       </button>
-      {sheet.mode === 'edit' && (
+      {sheet.mode === 'edit' && !confirmingRemove && (
         <div className="row row-split">
           <button type="button" className="btn btn-ghost" onClick={() => props.onMove(f)} disabled={busy}>
             {t.movePin}
           </button>
-          <button
-            type="button"
-            className="btn btn-danger"
-            disabled={busy}
-            onClick={() => window.confirm(t.removeConfirm) && attempt(props.onRemove)}
-          >
+          <button type="button" className="btn btn-danger" disabled={busy} onClick={() => setConfirmingRemove(true)}>
             {t.remove}
           </button>
+        </div>
+      )}
+      {sheet.mode === 'edit' && confirmingRemove && (
+        <div className="confirm" role="alertdialog" aria-label={t.removeConfirm}>
+          <p>{t.removeConfirm}</p>
+          <div className="row">
+            <button type="button" className="btn" disabled={busy} onClick={() => setConfirmingRemove(false)}>
+              {t.cancel}
+            </button>
+            <button type="button" className="btn btn-danger-solid" disabled={busy} onClick={() => attempt(props.onRemove)}>
+              {t.removeYes}
+            </button>
+          </div>
         </div>
       )}
     </form>
@@ -672,7 +682,16 @@ function CodeSheet({ t, id, code, onDone, showToast }: { t: T; id: string; code:
       await navigator.clipboard.writeText(code);
       showToast(t.copied);
     } catch {
-      window.prompt(t.copyCode, code);
+      // Clipboard can be blocked in in-app browsers: select the code so it can be copied by hand.
+      const el = document.querySelector('.code');
+      const sel = window.getSelection();
+      if (el && sel) {
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+      showToast(t.copyManual);
     }
   };
   return (

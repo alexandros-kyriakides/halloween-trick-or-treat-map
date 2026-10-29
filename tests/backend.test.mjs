@@ -183,3 +183,89 @@ test('after HIDE_AT the map is empty and nothing can be changed', async () => {
 test('unknown entry id is reported as NOT_FOUND', async () => {
   await rejects(api.call('getEntryForEdit', { id: 'missing', editCode: 'BAT-123' }), 'NOT_FOUND');
 });
+
+// ---------- regression tests for the 29 Oct audit ----------
+
+test('an edit-code guess racing a delete does not re-create the entry', async () => {
+  const loadEntry = await import('../amplify/data/resolvers/loadEntry.js');
+  const countAttempt = await import('../amplify/data/resolvers/countAttempt.js');
+  const a = await add();
+  const ctx = { args: { id: a.id, editCode: 'X' }, env: ENV, stash: {} };
+  ctx.result = api.execute(loadEntry.request(ctx));
+  loadEntry.response(ctx); // the guess has loaded the entry...
+  await api.call('deleteEntry', { id: a.id, editCode: a.editCode }); // ...then the owner deletes it
+  assert.throws(() => api.execute(countAttempt.request(ctx)), 'conditional write must fail');
+  assert.equal(api.table.size, 0, 'no ghost item without coordinates');
+});
+
+test('listPins skips rows without coordinates instead of failing', async () => {
+  await add({ names: 'Real' });
+  api.table.set('broken', { id: 'broken', attempts: 1, attemptWindowStart: 1 });
+  const list = await api.call('listPins', { groupCode: 'TESTCODE' });
+  assert.deepEqual(list.pins.map((p) => p.names), ['Real']);
+});
+
+test('without the group code, real entry ids are not revealed', async () => {
+  const a = await add();
+  const b = await add({ lat: CENTER.lat + 0.001 });
+  const anon = await api.call('listPins', {});
+  const ids = anon.pins.map((p) => p.id);
+  assert.ok(!ids.includes(a.id) && !ids.includes(b.id));
+  assert.equal(new Set(ids).size, 2, 'placeholder ids are unique');
+  const ok = await api.call('listPins', { groupCode: 'TESTCODE' });
+  assert.deepEqual(ok.pins.map((p) => p.id).sort(), [a.id, b.id].sort());
+});
+
+test('each repeated lockout doubles the window; a correct code resets it', async () => {
+  const a = await add();
+  const wrong = a.editCode === 'BAT-000' ? 'CAT-000' : 'BAT-000';
+  const guess = (code = wrong) => api.call('getEntryForEdit', { id: a.id, editCode: code });
+  const fiveWrong = async () => {
+    for (let i = 0; i < 5; i += 1) await rejects(guess(), 'WRONG_CODE');
+  };
+
+  await fiveWrong(); // window 1: 15 min
+  await rejects(guess(a.editCode), 'LOCKED');
+  clock.offsetMs += 15 * 60 * 1000 + 1000;
+
+  await fiveWrong(); // window 2: 30 min
+  clock.offsetMs += 20 * 60 * 1000;
+  await assert.rejects(guess(a.editCode), (e) => e.errorType === 'LOCKED' && e.errorInfo.waitMinutes === 10);
+  clock.offsetMs += 10 * 60 * 1000 + 1000;
+
+  await fiveWrong(); // window 3: 60 min
+  assert.equal(api.table.get(a.id).strikes, 2);
+  clock.offsetMs += 59 * 60 * 1000;
+  await rejects(guess(a.editCode), 'LOCKED');
+  clock.offsetMs += 2 * 60 * 1000;
+
+  await guess(a.editCode); // correct: everything cleared
+  const item = api.table.get(a.id);
+  assert.equal(item.strikes, undefined);
+  assert.equal(item.attempts, undefined);
+});
+
+test('a window that ends without a lockout does not add a strike', async () => {
+  const a = await add();
+  const wrong = a.editCode === 'BAT-000' ? 'CAT-000' : 'BAT-000';
+  for (let i = 0; i < 2; i += 1) await rejects(api.call('getEntryForEdit', { id: a.id, editCode: wrong }), 'WRONG_CODE');
+  clock.offsetMs += 16 * 60 * 1000;
+  await rejects(api.call('getEntryForEdit', { id: a.id, editCode: wrong }), 'WRONG_CODE');
+  assert.equal(api.table.get(a.id).strikes, 0);
+  assert.equal(api.table.get(a.id).attempts, 1);
+});
+
+test('edit codes come from util.autoId, not Math.random, and cover the code space', async () => {
+  const realRandom = Math.random;
+  Math.random = () => 0; // if codes used Math.random they would all be identical
+  try {
+    const codes = [];
+    for (let i = 0; i < 400; i += 1) codes.push((await add()).editCode);
+    for (const c of codes) assert.match(c, /^[A-Z]+-\d{3}$/);
+    const words = new Set(codes.map((c) => c.split('-')[0]));
+    assert.ok(words.size > 80, `expected most of the 100 words, got ${words.size}`);
+    assert.ok(new Set(codes).size > 390, 'codes are almost all distinct');
+  } finally {
+    Math.random = realRandom;
+  }
+});

@@ -11,7 +11,9 @@ const PORT = Number(process.argv[3] ?? 4180);
 const KEY = 'da2-testkey';
 const sim = createSimBackend({ env: { ...EVENT_SETTINGS, GROUP_CODE: process.env.GROUP_CODE ?? 'TESTCODE' } });
 import { readFileSync } from 'node:fs';
-const CSP = readFileSync('customHttp.yml', 'utf8').match(/Content-Security-Policy\n\s+value: "([^"]+)"/)[1];
+const HTTP_YML = readFileSync('customHttp.yml', 'utf8');
+const CSP = HTTP_YML.match(/Content-Security-Policy\n\s+value: "([^"]+)"/)[1];
+const REFERRER = HTTP_YML.match(/Referrer-Policy\n\s+value: (\S+)/)[1];
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.svg': 'image/svg+xml', '.json': 'application/json' };
 
 http.createServer(async (req, res) => {
@@ -36,7 +38,7 @@ http.createServer(async (req, res) => {
   const path = req.url === '/' || !extname(req.url.split('?')[0]) ? '/index.html' : req.url.split('?')[0];
   try {
     const file = await readFile(join(DIST, path));
-    res.writeHead(200, { 'content-type': types[extname(path)] ?? 'application/octet-stream', 'content-security-policy': CSP });
+    res.writeHead(200, { 'content-type': types[extname(path)] ?? 'application/octet-stream', 'content-security-policy': CSP, 'referrer-policy': REFERRER });
     res.end(file);
   } catch {
     res.writeHead(404).end();
