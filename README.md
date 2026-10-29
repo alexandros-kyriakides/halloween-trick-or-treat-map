@@ -47,6 +47,48 @@ All entries live in one DynamoDB table: **DynamoDB → Tables → `halloween-map
 - **Remove spam or an unwanted entry:** select the row → **Actions → Delete items**.
 - **Unlock a home after wrong codes:** delete the `attempts`, `attemptWindowStart` and `strikes` values on that row.
 
+## Operations runbook
+
+Commands use the AWS CLI with your admin profile; set `TABLE=halloween-map-entries-main` first.
+
+**Check the release (before sending the link, and after any redeploy):**
+```bash
+python3 scripts/smoke_test.py https://main.<app-id>.amplifyapp.com
+```
+It asks for the group code without showing it. It checks headers, assets, OSM tiles and every API rule against the real site, and creates and deletes test entries. Entry C (the lockout test) can't be deleted through the site, so the script prints the command that removes it.
+
+**Rotate the group code** (never use `31OCT`, which is in this repository's history):
+1. Amplify → Hosting → Environment variables → edit `GROUP_CODE` → Save.
+2. Deployments → **Redeploy this version**, about 10 minutes.
+3. Phones that saved the old code are asked for the new one automatically.
+
+The code is never written to Git, and no project code prints it. After a rebuild, open the build log and search for the code to confirm it isn't there.
+
+**Remove spam in bulk.** Preview first; nothing is deleted by this step:
+```bash
+SINCE=2026-10-31T15:00:00Z   # rows created after this time (UTC)
+aws dynamodb scan --table-name $TABLE --filter-expression "createdAt > :t" \
+  --expression-attribute-values "{\":t\":{\"S\":\"$SINCE\"}}" \
+  --projection-expression "id, createdAt, names, apartment" --output table
+```
+If the preview lists only spam, delete those rows:
+```bash
+aws dynamodb scan --table-name $TABLE --filter-expression "createdAt > :t" \
+  --expression-attribute-values "{\":t\":{\"S\":\"$SINCE\"}}" \
+  --projection-expression id --query 'Items[].id.S' --output text | tr '\t' '\n' |
+while read -r id; do [ -n "$id" ] && aws dynamodb delete-item --table-name $TABLE --key "{\"id\":{\"S\":\"$id\"}}"; done
+```
+If spam keeps arriving, rotate the group code first.
+
+**Budget alert (once):** Billing and Cost Management → Budgets → Create budget → *Monthly cost budget*, amount `$5`, alert email at 80 %.
+
+**Confirm automatic deletion is on:**
+```bash
+aws dynamodb describe-time-to-live --table-name $TABLE
+# expect: "TimeToLiveStatus": "ENABLED", "AttributeName": "expiresAt"
+```
+Each row's `expiresAt` should be `1794096000` (2026-11-08 00:00 UTC = 02:00 Nicosia).
+
 ## Settings
 
 **Group code:** set in the Amplify console, never in the repository: **Hosting → Environment variables → `GROUP_CODE`**. Case, spaces and dashes are ignored. After changing it, redeploy (**Deployments → Redeploy this version**, or push any commit).

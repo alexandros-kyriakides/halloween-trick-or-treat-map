@@ -14,6 +14,7 @@ import { readFileSync } from 'node:fs';
 const HTTP_YML = readFileSync('customHttp.yml', 'utf8');
 const CSP = HTTP_YML.match(/Content-Security-Policy\n\s+value: "([^"]+)"/)[1];
 const REFERRER = HTTP_YML.match(/Referrer-Policy\n\s+value: (\S+)/)[1];
+const ROBOTS = HTTP_YML.match(/X-Robots-Tag\n\s+value: (.+)/)[1].trim();
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.svg': 'image/svg+xml', '.json': 'application/json' };
 
 http.createServer(async (req, res) => {
@@ -28,8 +29,15 @@ http.createServer(async (req, res) => {
     res.writeHead(200, { 'content-type': 'application/json' });
     if (req.headers['x-api-key'] !== KEY) return res.end(JSON.stringify({ errors: [{ errorType: 'UnauthorizedException', message: 'bad key' }] }));
     const field = query.match(/\{\s*(\w+)\s*\(/)[1];
+    // Map the field's arguments like AppSync does: name: $variable, or a literal.
+    const argList = query.slice(query.indexOf(field + '(') + field.length + 1);
+    const args = {};
+    for (const m of argList.slice(0, argList.indexOf(')')).matchAll(/(\w+)\s*:\s*(\$\w+|true|false|-?[\d.]+|"[^"]*")/g)) {
+      const v = m[2];
+      args[m[1]] = v.startsWith('$') ? (variables ?? {})[v.slice(1)] : JSON.parse(v);
+    }
     try {
-      const data = await sim.call(field, variables);
+      const data = await sim.call(field, args);
       return res.end(JSON.stringify({ data: { [field]: data } }));
     } catch (e) {
       return res.end(JSON.stringify({ data: null, errors: [{ path: [field], errorType: e.errorType, message: e.message, errorInfo: e.errorInfo, data: null }] }));
@@ -38,7 +46,7 @@ http.createServer(async (req, res) => {
   const path = req.url === '/' || !extname(req.url.split('?')[0]) ? '/index.html' : req.url.split('?')[0];
   try {
     const file = await readFile(join(DIST, path));
-    res.writeHead(200, { 'content-type': types[extname(path)] ?? 'application/octet-stream', 'content-security-policy': CSP, 'referrer-policy': REFERRER });
+    res.writeHead(200, { 'content-type': types[extname(path)] ?? 'application/octet-stream', 'content-security-policy': CSP, 'referrer-policy': REFERRER, 'x-robots-tag': ROBOTS });
     res.end(file);
   } catch {
     res.writeHead(404).end();
