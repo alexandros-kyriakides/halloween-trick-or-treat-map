@@ -14,7 +14,7 @@ function requireCorrectCode(ctx) {
     util.error(
       triesLeft > 0
         ? `Wrong edit code. ${triesLeft} tries left.`
-        : 'Wrong edit code. Too many attempts, try again in 15 minutes.',
+        : 'Wrong edit code. Too many attempts, try again later.',
       'WRONG_CODE',
       null,
       { triesLeft },

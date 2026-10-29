@@ -1,6 +1,8 @@
 // Step 2 of every edit-code operation: record the attempt BEFORE the code is checked.
 // The conditional write makes this atomic: even many parallel requests can use at most
-// MAX_ATTEMPTS attempts per 15-minute window. A correct code clears the counter (step 3).
+// MAX_ATTEMPTS attempts per window. A correct code clears the counter (step 3).
+// Every write requires the item to still exist: an attempt racing a delete must never
+// re-create the entry as an item without coordinates (that would break listPins for everyone).
 import { util } from '@aws-appsync/utils';
 
 const MAX_ATTEMPTS = 5;
@@ -20,8 +22,8 @@ export function request(ctx) {
         expressionValues: util.dynamodb.toMapValues({ ':one': 1 }),
       },
       condition: {
-        expression: '#cw = :cw AND #ca < :cmax',
-        expressionNames: { '#cw': 'attemptWindowStart', '#ca': 'attempts' },
+        expression: 'attribute_exists(#id) AND #cw = :cw AND #ca < :cmax',
+        expressionNames: { '#id': 'id', '#cw': 'attemptWindowStart', '#ca': 'attempts' },
         expressionValues: util.dynamodb.toMapValues({
           ':cw': entry.attemptWindowStart,
           ':cmax': MAX_ATTEMPTS,
@@ -30,16 +32,19 @@ export function request(ctx) {
     };
   }
 
-  // Start a new window with this attempt as number 1.
+  // Start a new window with this attempt as number 1. If the previous window ended locked,
+  // add a strike so the new window is twice as long.
+  const previousLocked = (entry.attempts ?? 0) >= MAX_ATTEMPTS;
+  const strikes = (entry.strikes ?? 0) + (previousLocked ? 1 : 0);
   const condition =
     entry.attemptWindowStart === undefined || entry.attemptWindowStart === null
       ? {
-          expression: 'attribute_not_exists(#cw)',
-          expressionNames: { '#cw': 'attemptWindowStart' },
+          expression: 'attribute_exists(#id) AND attribute_not_exists(#cw)',
+          expressionNames: { '#id': 'id', '#cw': 'attemptWindowStart' },
         }
       : {
-          expression: '#cw = :cw',
-          expressionNames: { '#cw': 'attemptWindowStart' },
+          expression: 'attribute_exists(#id) AND #cw = :cw',
+          expressionNames: { '#id': 'id', '#cw': 'attemptWindowStart' },
           expressionValues: util.dynamodb.toMapValues({ ':cw': entry.attemptWindowStart }),
         };
 
@@ -47,11 +52,12 @@ export function request(ctx) {
     operation: 'UpdateItem',
     key,
     update: {
-      expression: 'SET #w = :now, #a = :one',
-      expressionNames: { '#w': 'attemptWindowStart', '#a': 'attempts' },
+      expression: 'SET #w = :now, #a = :one, #s = :strikes',
+      expressionNames: { '#w': 'attemptWindowStart', '#a': 'attempts', '#s': 'strikes' },
       expressionValues: util.dynamodb.toMapValues({
         ':now': util.time.nowEpochSeconds(),
         ':one': 1,
+        ':strikes': strikes,
       }),
     },
     condition,

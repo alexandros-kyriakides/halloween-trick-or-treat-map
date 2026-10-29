@@ -56,12 +56,14 @@ const en = {
   movePin: 'Move pin',
   remove: 'Remove my home',
   removeConfirm: "Remove your home from the map? This can't be undone.",
+  removeYes: 'Yes, remove',
   removed: 'Removed from the map',
 
   codeTitle: 'Your edit code',
   codeHelp: "Keep this code. You'll need it to change or remove your home.",
   copyCode: 'Copy code',
   copied: 'Code copied',
+  copyManual: 'Press and hold the code to copy it.',
   viber: 'Send to myself on Viber',
   share: 'Share…',
   done: 'Done',
@@ -80,8 +82,9 @@ const en = {
     WRONG_CODE: (n: number) =>
       n > 0
         ? `That code doesn't match this home. ${n} ${n === 1 ? 'try' : 'tries'} left.`
-        : "That code doesn't match this home. Too many tries, wait 15 minutes.",
-    LOCKED: (m: number) => `Too many wrong codes. Try again in ${m} minutes.`,
+        : "That code doesn't match this home. Too many tries, try again later.",
+    LOCKED: (m: number) =>
+      m >= 120 ? `Too many wrong codes. Try again in ${Math.ceil(m / 60)} hours.` : `Too many wrong codes. Try again in ${m} minutes.`,
     BUSY: 'Too many tries at once. Wait a moment and try again.',
     NOT_FOUND: 'This home is no longer on the map.',
     OUTSIDE_AREA: 'That spot is outside the map area.',
@@ -152,12 +155,14 @@ const el: Dict = {
   movePin: 'Μετακίνηση',
   remove: 'Αφαίρεση του σπιτιού μου',
   removeConfirm: 'Να αφαιρεθεί το σπίτι σας από τον χάρτη; Δεν μπορεί να αναιρεθεί.',
+  removeYes: 'Ναι, αφαίρεση',
   removed: 'Αφαιρέθηκε από τον χάρτη',
 
   codeTitle: 'Ο κωδικός επεξεργασίας σας',
   codeHelp: 'Κρατήστε αυτόν τον κωδικό. Θα τον χρειαστείτε για να αλλάξετε ή να αφαιρέσετε το σπίτι σας.',
   copyCode: 'Αντιγραφή κωδικού',
   copied: 'Ο κωδικός αντιγράφηκε',
+  copyManual: 'Πατήστε παρατεταμένα τον κωδικό για να τον αντιγράψετε.',
   viber: 'Αποστολή στον εαυτό μου στο Viber',
   share: 'Κοινοποίηση…',
   done: 'Τέλος',
@@ -176,8 +181,11 @@ const el: Dict = {
     WRONG_CODE: (n: number) =>
       n > 0
         ? `Ο κωδικός δεν ταιριάζει με αυτό το σπίτι. ${n === 1 ? 'Απομένει 1 προσπάθεια' : `Απομένουν ${n} προσπάθειες`}.`
-        : 'Ο κωδικός δεν ταιριάζει με αυτό το σπίτι. Πολλές προσπάθειες, περιμένετε 15 λεπτά.',
-    LOCKED: (m: number) => `Πάρα πολλοί λάθος κωδικοί. Δοκιμάστε ξανά σε ${m} λεπτά.`,
+        : 'Ο κωδικός δεν ταιριάζει με αυτό το σπίτι. Πολλές προσπάθειες, δοκιμάστε ξανά αργότερα.',
+    LOCKED: (m: number) =>
+      m >= 120
+        ? `Πάρα πολλοί λάθος κωδικοί. Δοκιμάστε ξανά σε ${Math.ceil(m / 60)} ώρες.`
+        : `Πάρα πολλοί λάθος κωδικοί. Δοκιμάστε ξανά σε ${m} λεπτά.`,
     BUSY: 'Πολλές προσπάθειες ταυτόχρονα. Περιμένετε λίγο και δοκιμάστε ξανά.',
     NOT_FOUND: 'Αυτό το σπίτι δεν είναι πια στον χάρτη.',
     OUTSIDE_AREA: 'Αυτό το σημείο είναι έξω από την περιοχή του χάρτη.',

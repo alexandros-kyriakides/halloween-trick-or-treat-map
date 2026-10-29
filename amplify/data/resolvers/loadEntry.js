@@ -3,7 +3,10 @@
 import { util } from '@aws-appsync/utils';
 
 const MAX_ATTEMPTS = 5;
-const WINDOW_SECONDS = 15 * 60;
+const BASE_WINDOW_SECONDS = 15 * 60;
+// Each time an entry gets locked again, the next window doubles: 15, 30, 60 ... 3840 minutes.
+// `strikes` counts those lockouts; a correct code clears it.
+const MULTIPLIERS = [1, 2, 4, 8, 16, 32, 64, 128, 256];
 
 export function request(ctx) {
   const hideAt = util.time.parseISO8601ToEpochMilliSeconds(ctx.env.HIDE_AT);
@@ -28,9 +31,11 @@ export function response(ctx) {
   const now = util.time.nowEpochSeconds();
   const windowStart = entry.attemptWindowStart ?? 0;
   const attempts = entry.attempts ?? 0;
-  const windowOpen = now - windowStart < WINDOW_SECONDS;
+  const strikes = Math.min(entry.strikes ?? 0, MULTIPLIERS.length - 1);
+  const windowSeconds = BASE_WINDOW_SECONDS * MULTIPLIERS[strikes];
+  const windowOpen = now - windowStart < windowSeconds;
   if (windowOpen && attempts >= MAX_ATTEMPTS) {
-    const waitMinutes = Math.max(1, Math.ceil((windowStart + WINDOW_SECONDS - now) / 60));
+    const waitMinutes = Math.max(1, Math.ceil((windowStart + windowSeconds - now) / 60));
     util.error(`Too many wrong codes. Try again in ${waitMinutes} minutes.`, 'LOCKED', null, {
       waitMinutes,
     });

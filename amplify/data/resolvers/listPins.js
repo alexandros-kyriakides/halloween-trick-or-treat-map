@@ -1,5 +1,8 @@
-// listPins: everyone gets the pin locations; names, apartment, buzzer and notes only with the
-// group code. Edit codes and attempt counters are never returned. After HIDE_AT: nothing.
+// listPins: everyone gets the pin locations; ids, names, apartment, buzzer and notes only with
+// the group code (without it, ids are replaced by placeholders, so outsiders have nothing to
+// aim edit-code guesses at). Edit codes and attempt counters are never returned.
+// Items without numeric coordinates are skipped so one bad row can't break the whole list.
+// After HIDE_AT: nothing.
 import { util, runtime } from '@aws-appsync/utils';
 
 function norm(s) {
@@ -21,7 +24,8 @@ export function response(ctx) {
   }
   const given = norm(ctx.args.groupCode);
   const groupCodeOk = given.length > 0 && given === norm(ctx.env.GROUP_CODE);
-  const pins = ctx.result.items.map((e) =>
+  const valid = ctx.result.items.filter((e) => typeof e.lat === 'number' && typeof e.lng === 'number');
+  const pins = valid.map((e, i) =>
     groupCodeOk
       ? {
           id: e.id,
@@ -32,7 +36,7 @@ export function response(ctx) {
           buzzer: e.buzzer ?? null,
           notes: e.notes ?? null,
         }
-      : { id: e.id, lat: e.lat, lng: e.lng },
+      : { id: `pin-${i}`, lat: e.lat, lng: e.lng },
   );
   return { groupCodeOk, closed: false, pins };
 }
