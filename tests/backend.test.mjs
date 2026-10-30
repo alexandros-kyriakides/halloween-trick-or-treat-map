@@ -283,3 +283,56 @@ test('area is 1.5 km x 1.5 km: 700 m from the centre is accepted, 800 m is rejec
   await rejects(add({ lng: CENTER.lng + dLng800 }), 'OUTSIDE_AREA');
   await rejects(add({ lng: CENTER.lng - dLng800 }), 'OUTSIDE_AREA');
 });
+
+// ---------- superuser code ----------
+
+const SUPER = 'GHOST-ADMIN-2026-XYZ';
+const superApi = () => createSimBackend({ env: { ...ENV, SUPER_CODE: SUPER } });
+
+test('superuser code reads, edits and deletes any entry, and sees its edit code', async () => {
+  api = superApi();
+  const a = await add({ names: 'Anna', apartment: '1' });
+  const b = await add({ names: 'Babis', apartment: '2' });
+  const pin = await api.call('getEntryForEdit', { id: a.id, editCode: 'ghost admin 2026 xyz' });
+  assert.equal(pin.superuser, true);
+  assert.equal(pin.editCode, a.editCode, 'superuser can read the entry code to give it back');
+  await api.call('updateEntry', { id: a.id, editCode: SUPER, ...CENTER, names: 'Anna (fixed)', apartment: '1' });
+  assert.equal(api.table.get(a.id).names, 'Anna (fixed)');
+  assert.equal(api.table.get(a.id).editCode, a.editCode, 'entry code unchanged');
+  assert.equal(await api.call('deleteEntry', { id: b.id, editCode: SUPER }), true);
+  assert.equal(api.table.has(b.id), false);
+});
+
+test('owner code never returns superuser fields', async () => {
+  api = superApi();
+  const a = await add();
+  const pin = await api.call('getEntryForEdit', { id: a.id, editCode: a.editCode });
+  assert.equal(pin.superuser, undefined);
+  assert.equal(pin.editCode, undefined);
+});
+
+test('superuser code works on a locked entry and does not count attempts', async () => {
+  api = superApi();
+  const a = await add();
+  const wrong = a.editCode === 'BAT-000' ? 'CAT-000' : 'BAT-000';
+  for (let i = 0; i < 5; i += 1) await rejects(api.call('getEntryForEdit', { id: a.id, editCode: wrong }), 'WRONG_CODE');
+  await rejects(api.call('getEntryForEdit', { id: a.id, editCode: a.editCode }), 'LOCKED');
+  await api.call('getEntryForEdit', { id: a.id, editCode: SUPER });
+  assert.equal(api.table.get(a.id).attempts, undefined, 'superuser success also unlocks the entry');
+  await api.call('getEntryForEdit', { id: a.id, editCode: a.editCode }); // owner can get in again
+});
+
+test('superuser code is off when SUPER_CODE is unset or shorter than 12', async () => {
+  const a = await add();
+  await rejects(api.call('getEntryForEdit', { id: a.id, editCode: SUPER }), 'WRONG_CODE');
+  api = createSimBackend({ env: { ...ENV, SUPER_CODE: 'SHORT-1' } });
+  const b = await add();
+  await rejects(api.call('deleteEntry', { id: b.id, editCode: 'SHORT-1' }), 'WRONG_CODE');
+});
+
+test('a near-miss superuser code counts as a normal wrong attempt', async () => {
+  api = superApi();
+  const a = await add();
+  await assert.rejects(api.call('deleteEntry', { id: a.id, editCode: SUPER + 'X' }), (e) => e.errorInfo.triesLeft === 4);
+  assert.equal(api.table.has(a.id), true);
+});

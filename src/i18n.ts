@@ -41,6 +41,7 @@ const en = {
 
   formNew: 'Your home',
   formEdit: 'Edit your home',
+  formEditAdmin: 'Edit this home',
   optional: 'optional',
   apartment: 'Apartment / floor',
   apartmentHint: 'e.g. 302 or 3rd floor',
@@ -60,6 +61,11 @@ const en = {
   remove: 'Remove my home',
   removeConfirm: "Remove your home from the map? This can't be undone.",
   removeYes: 'Yes, remove',
+  removeAdmin: 'Remove this home',
+  removeConfirmAdmin: "Remove this home from the map? This can't be undone.",
+  admin: 'Admin',
+  adminExit: 'Leave admin mode on this phone',
+  adminOwnerCode: "Admin view. This home's own edit code:",
   removed: 'Removed from the map',
 
   codeTitle: 'Your edit code',
@@ -73,7 +79,7 @@ const en = {
   shareText: (code: string, link: string) => `My edit code for the trick-or-treat map: ${code}\n${link}`,
 
   askCodeTitle: 'Enter your edit code',
-  askCodeHelp: 'It was shown when the home was added, for example PUMPKIN-417.',
+  askCodeHelp: 'It was shown when the home was added, for example PUMPKIN-417. The organiser can also use the admin code.',
   askCodeLabel: 'Edit code',
   askCodeContinue: 'Continue',
 
@@ -143,6 +149,7 @@ const el: Dict = {
 
   formNew: 'Το σπίτι σας',
   formEdit: 'Επεξεργασία σπιτιού',
+  formEditAdmin: 'Επεξεργασία αυτού του σπιτιού',
   optional: 'προαιρετικό',
   apartment: 'Διαμέρισμα / όροφος',
   apartmentHint: 'π.χ. 302 ή 3ος όροφος',
@@ -162,6 +169,11 @@ const el: Dict = {
   remove: 'Αφαίρεση του σπιτιού μου',
   removeConfirm: 'Να αφαιρεθεί το σπίτι σας από τον χάρτη; Δεν μπορεί να αναιρεθεί.',
   removeYes: 'Ναι, αφαίρεση',
+  removeAdmin: 'Αφαίρεση αυτού του σπιτιού',
+  removeConfirmAdmin: 'Να αφαιρεθεί αυτό το σπίτι από τον χάρτη; Δεν μπορεί να αναιρεθεί.',
+  admin: 'Διαχείριση',
+  adminExit: 'Έξοδος από τη διαχείριση σε αυτό το κινητό',
+  adminOwnerCode: 'Προβολή διαχειριστή. Ο κωδικός επεξεργασίας αυτού του σπιτιού:',
   removed: 'Αφαιρέθηκε από τον χάρτη',
 
   codeTitle: 'Ο κωδικός επεξεργασίας σας',
@@ -175,7 +187,7 @@ const el: Dict = {
   shareText: (code: string, link: string) => `Ο κωδικός επεξεργασίας μου για τον χάρτη trick-or-treat: ${code}\n${link}`,
 
   askCodeTitle: 'Βάλτε τον κωδικό επεξεργασίας',
-  askCodeHelp: 'Εμφανίστηκε όταν προστέθηκε το σπίτι, για παράδειγμα PUMPKIN-417.',
+  askCodeHelp: 'Εμφανίστηκε όταν προστέθηκε το σπίτι, για παράδειγμα PUMPKIN-417. Ο διοργανωτής μπορεί να χρησιμοποιήσει και τον κωδικό διαχείρισης.',
   askCodeLabel: 'Κωδικός επεξεργασίας',
   askCodeContinue: 'Συνέχεια',
 

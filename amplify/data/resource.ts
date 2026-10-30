@@ -31,6 +31,9 @@ const schema = a.schema({
     names: a.string(),
     buzzer: a.string(),
     notes: a.string(),
+    // Only set by getEntryForEdit when the superuser code was used.
+    superuser: a.boolean(),
+    editCode: a.string(),
   }),
 
   PinList: a.customType({

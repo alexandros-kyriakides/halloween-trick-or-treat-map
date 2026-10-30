@@ -3,11 +3,14 @@
 // MAX_ATTEMPTS attempts per window. A correct code clears the counter (step 3).
 // Every write requires the item to still exist: an attempt racing a delete must never
 // re-create the entry as an item without coordinates (that would break listPins for everyone).
-import { util } from '@aws-appsync/utils';
+import { util, runtime } from '@aws-appsync/utils';
 
 const MAX_ATTEMPTS = 5;
 
 export function request(ctx) {
+  if (ctx.stash.superuser) {
+    runtime.earlyReturn(ctx.stash.entry);
+  }
   const entry = ctx.stash.entry;
   const key = util.dynamodb.toMapValues({ id: entry.id });
 

@@ -9,7 +9,13 @@ import { EVENT_SETTINGS } from '../amplify/settings.ts';
 const DIST = process.argv[2] ?? 'dist';
 const PORT = Number(process.argv[3] ?? 4180);
 const KEY = 'da2-testkey';
-const sim = createSimBackend({ env: { ...EVENT_SETTINGS, GROUP_CODE: process.env.GROUP_CODE ?? 'TESTCODE' } });
+const sim = createSimBackend({
+  env: {
+    ...EVENT_SETTINGS,
+    GROUP_CODE: process.env.GROUP_CODE ?? 'TESTCODE',
+    ...(process.env.SUPER_CODE ? { SUPER_CODE: process.env.SUPER_CODE } : {}),
+  },
+});
 import { readFileSync } from 'node:fs';
 const HTTP_YML = readFileSync('customHttp.yml', 'utf8');
 const CSP = HTTP_YML.match(/Content-Security-Policy\n\s+value: "([^"]+)"/)[1];

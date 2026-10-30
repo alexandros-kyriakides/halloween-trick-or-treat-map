@@ -9,6 +9,9 @@ function norm(s) {
 }
 
 function requireCorrectCode(ctx) {
+  if (ctx.stash.superuser) {
+    return;
+  }
   const given = norm(ctx.args.editCode);
   if (given.length === 0 || given !== norm(ctx.stash.entry.editCode)) {
     const triesLeft = Math.max(0, MAX_ATTEMPTS - (ctx.stash.attemptsUsed ?? MAX_ATTEMPTS));
@@ -56,5 +59,11 @@ export function response(ctx) {
   if (ctx.error) {
     util.error(ctx.error.message, ctx.error.type);
   }
-  return toPin(ctx.result);
+  const pin = toPin(ctx.result);
+  if (ctx.stash.superuser) {
+    // Only the superuser gets the entry's own edit code, so they can give it back to a neighbour.
+    pin.superuser = true;
+    pin.editCode = ctx.stash.entry.editCode;
+  }
+  return pin;
 }

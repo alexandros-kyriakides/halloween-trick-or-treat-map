@@ -8,6 +8,9 @@ function norm(s) {
 }
 
 function requireCorrectCode(ctx) {
+  if (ctx.stash.superuser) {
+    return;
+  }
   const given = norm(ctx.args.editCode);
   if (given.length === 0 || given !== norm(ctx.stash.entry.editCode)) {
     const triesLeft = Math.max(0, MAX_ATTEMPTS - (ctx.stash.attemptsUsed ?? MAX_ATTEMPTS));
