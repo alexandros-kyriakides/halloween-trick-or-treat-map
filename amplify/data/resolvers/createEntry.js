@@ -10,7 +10,7 @@ const EAST = 33.3213773;
 
 // apartment and buzzer are kept for entries saved before 30 Oct; the form now sends
 // aptNumber + floor (apartments only) and no bell field.
-const LIMITS = { apartment: 40, names: 60, buzzer: 40, notes: 200, aptNumber: 20, floor: 10, streetNumber: 10 };
+const LIMITS = { apartment: 40, names: 60, buzzer: 40, notes: 200, aptNumber: 20, floor: 10, streetNumber: 10, streetName: 60 };
 
 // Simple, friendly words that are easy to spell. 100 words x 1000 numbers = 100,000 codes.
 const WORDS = [

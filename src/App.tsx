@@ -32,14 +32,15 @@ function save(key: string, value: unknown) {
 }
 
 type HomeKind = 'house' | 'apartment';
-type Fields = { kind: HomeKind; streetNumber: string; aptNumber: string; floor: string; names: string; notes: string };
-const emptyFields = (kind: HomeKind = 'house'): Fields => ({ kind, streetNumber: '', aptNumber: '', floor: '', names: '', notes: '' });
+type Fields = { kind: HomeKind; streetName: string; streetNumber: string; aptNumber: string; floor: string; names: string; notes: string };
+const emptyFields = (kind: HomeKind = 'house'): Fields => ({ kind, streetName: '', streetNumber: '', aptNumber: '', floor: '', names: '', notes: '' });
 const fromPin = (p: Pin): Fields => {
   // Entries saved before 30 Oct have a free-text `apartment` instead of number + floor.
   const aptNumber = p.aptNumber ?? (p.apartment ? p.apartment.slice(0, LIMITS.aptNumber) : '');
   const floor = p.floor ?? '';
   return {
     kind: aptNumber || floor ? 'apartment' : 'house',
+    streetName: p.streetName ?? '',
     streetNumber: p.streetNumber ?? '',
     aptNumber,
     floor,
@@ -52,6 +53,7 @@ const toEntry = (f: Fields, at: LatLng): EntryFields => {
   return {
     lat: at.lat,
     lng: at.lng,
+    streetName: f.streetName.trim() || null,
     streetNumber: f.streetNumber.trim() || null,
     aptNumber: (apt && f.aptNumber.trim()) || null,
     floor: (apt && f.floor.trim()) || null,
@@ -593,9 +595,9 @@ function GroupSheet(props: {
                   {p.names || '🎃'}
                   {props.myCodes[p.id] && <span className="tag">{t.yours}</span>}
                 </p>
-                {p.streetNumber && (
+                {(p.streetNumber || p.streetName) && (
                   <p>
-                    <span className="k">{t.streetNumberShort}</span> {p.streetNumber}
+                    <span className="k">{t.addressShort}</span> {[p.streetName, p.streetNumber].filter(Boolean).join(' ')}
                   </p>
                 )}
                 {(p.aptNumber || p.floor) && (
@@ -739,7 +741,7 @@ function FormSheet(props: {
     });
 
   const field = (
-    name: 'names' | 'notes' | 'aptNumber' | 'floor' | 'streetNumber',
+    name: 'names' | 'notes' | 'aptNumber' | 'floor' | 'streetNumber' | 'streetName',
     label: string,
     hint: string,
     multiline = false,
@@ -800,7 +802,10 @@ function FormSheet(props: {
           </button>
         ))}
       </div>
-      {field('streetNumber', t.streetNumber, t.streetNumberHint, false, true)}
+      <div className="field-row field-row-street">
+        {field('streetName', t.streetName, t.streetNameHint)}
+        {field('streetNumber', t.streetNumber, t.streetNumberHint, false, true)}
+      </div>
       {f.kind === 'apartment' && (
         <div className="field-row">
           {field('aptNumber', t.aptNumber, t.aptNumberHint, false, true)}

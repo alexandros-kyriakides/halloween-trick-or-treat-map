@@ -11,7 +11,7 @@ const EAST = 33.3213773;
 
 // apartment and buzzer are kept for entries saved before 30 Oct; the form now sends
 // aptNumber + floor (apartments only) and no bell field.
-const LIMITS = { apartment: 40, names: 60, buzzer: 40, notes: 200, aptNumber: 20, floor: 10, streetNumber: 10 };
+const LIMITS = { apartment: 40, names: 60, buzzer: 40, notes: 200, aptNumber: 20, floor: 10, streetNumber: 10, streetName: 60 };
 
 function norm(s) {
   return (s ?? '').toUpperCase().replaceAll(' ', '').replaceAll('-', '');
@@ -76,6 +76,7 @@ function toPin(e) {
     aptNumber: e.aptNumber ?? null,
     floor: e.floor ?? null,
     streetNumber: e.streetNumber ?? null,
+    streetName: e.streetName ?? null,
   };
 }
 
@@ -94,6 +95,7 @@ export function request(ctx) {
     aptNumber: cleanText(args.aptNumber, 'aptNumber'),
     floor: cleanText(args.floor, 'floor'),
     streetNumber: cleanText(args.streetNumber, 'streetNumber'),
+    streetName: cleanText(args.streetName, 'streetName'),
   };
   requireCorrectCode(ctx);
 
