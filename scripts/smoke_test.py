@@ -104,10 +104,10 @@ def main():
           status == 200 and group.strip().lower() not in raw.decode().lower())
     api = Api(outputs['data']['url'], outputs['data']['api_key'])
 
-    # OSM tile with the Referer a browser sends under strict-origin-when-cross-origin
-    t_status, _, _ = http('https://tile.openstreetmap.org/16/39158/25921.png',
+    # Map tile (Esri street map) with the Referer a browser sends under strict-origin-when-cross-origin
+    t_status, _, _ = http('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/16/25921/39158',
                           headers={'Referer': site + '/', 'User-Agent': 'Mozilla/5.0 (smoke test)'})
-    check('OSM tile served with site Referer', t_status == 200, f'HTTP {t_status}')
+    check('map tile served with site Referer', t_status == 200, f'HTTP {t_status}')
 
     # ---------- access rules ----------
     d, err = api.call(LIST)

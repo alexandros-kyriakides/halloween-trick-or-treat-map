@@ -55,7 +55,7 @@ Commands use the AWS CLI with your admin profile; set `TABLE=halloween-map-entri
 ```bash
 python3 scripts/smoke_test.py https://main.<app-id>.amplifyapp.com
 ```
-It asks for the group code without showing it. It checks headers, assets, OSM tiles and every API rule against the real site, and creates and deletes test entries. Entry C (the lockout test) can't be deleted through the site, so the script prints the command that removes it.
+It asks for the group code without showing it. It checks headers, assets, map tiles and every API rule against the real site, and creates and deletes test entries. Entry C (the lockout test) can't be deleted through the site, so the script prints the command that removes it.
 
 **Rotate the group code** (never use `31OCT`, which is in this repository's history):
 1. Amplify → Hosting → Environment variables → edit `GROUP_CODE` → Save.

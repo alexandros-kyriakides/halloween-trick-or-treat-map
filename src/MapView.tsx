@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { BOUNDS, OSM_ATTRIBUTION, OSM_TILES, SATELLITE_ATTRIBUTION, SATELLITE_TILES, STREET_LABEL_TILES } from './config';
+import { BOUNDS, SATELLITE_ATTRIBUTION, SATELLITE_TILES, STREET_LABEL_TILES, STREET_MAP_ATTRIBUTION, STREET_MAP_TILES } from './config';
 
 export type BaseLayer = 'satellite' | 'map';
 import type { LatLng, PinGroup } from './geo';
@@ -63,7 +63,7 @@ export function MapView(props: Props) {
       attributionControl: true,
     });
     bases.current = {
-      map: L.tileLayer(OSM_TILES, { maxZoom: 20, maxNativeZoom: 19, attribution: OSM_ATTRIBUTION }),
+      map: L.tileLayer(STREET_MAP_TILES, { maxZoom: 20, maxNativeZoom: 19, attribution: STREET_MAP_ATTRIBUTION }),
       satellite: L.layerGroup([
         L.tileLayer(SATELLITE_TILES, { maxZoom: 20, maxNativeZoom: 19, attribution: SATELLITE_ATTRIBUTION }),
         L.tileLayer(STREET_LABEL_TILES, { maxZoom: 20, maxNativeZoom: 19, opacity: 0.9 }),
