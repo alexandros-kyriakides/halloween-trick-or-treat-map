@@ -20,6 +20,11 @@ const en = {
   myLocation: 'Show my location',
   locationOutside: "You're outside the map area.",
   locationOff: 'Location is off for this page. You can still find homes on the map.',
+  locationTimeout: "Couldn't find your location yet. Try again in a moment, ideally outdoors.",
+  locHelpTitle: 'Turn on location',
+  locHelpIntro: "Your phone isn't sharing its location with this page. Websites can't change this themselves, so here's how to do it on this phone:",
+  locHelpRetry: 'Try again',
+  locHelpWithout: 'You can still use the map without it; only the blue "you are here" dot is missing.',
 
   homesHere: (n: number) => (n === 1 ? '1 home taking part here' : `${n} homes taking part here`),
   detailsLocked: 'Enter the group code to see names and details.',
@@ -128,6 +133,11 @@ const el: Dict = {
   myLocation: 'Η τοποθεσία μου',
   locationOutside: 'Βρίσκεστε έξω από την περιοχή του χάρτη.',
   locationOff: 'Η τοποθεσία είναι απενεργοποιημένη για αυτή τη σελίδα. Μπορείτε να βρείτε τα σπίτια στον χάρτη.',
+  locationTimeout: 'Δεν βρέθηκε ακόμα η τοποθεσία σας. Δοκιμάστε ξανά σε λίγο, καλύτερα σε εξωτερικό χώρο.',
+  locHelpTitle: 'Ενεργοποίηση τοποθεσίας',
+  locHelpIntro: 'Το κινητό σας δεν μοιράζεται την τοποθεσία του με αυτή τη σελίδα. Οι ιστότοποι δεν μπορούν να το αλλάξουν μόνοι τους, οπότε δείτε πώς γίνεται σε αυτό το κινητό:',
+  locHelpRetry: 'Δοκιμάστε ξανά',
+  locHelpWithout: 'Μπορείτε να χρησιμοποιήσετε τον χάρτη και χωρίς αυτό· λείπει μόνο η μπλε κουκκίδα «είστε εδώ».',
 
   homesHere: (n: number) => (n === 1 ? '1 σπίτι συμμετέχει εδώ' : `${n} σπίτια συμμετέχουν εδώ`),
   detailsLocked: 'Βάλτε τον κωδικό ομάδας για να δείτε ονόματα και λεπτομέρειες.',

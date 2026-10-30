@@ -4,6 +4,7 @@ import { LIMITS, REFRESH_MS } from './config';
 import { groupPins, insideArea, nearestGroup, type LatLng, type PinGroup } from './geo';
 import { dict, errorText, type Lang, type T } from './i18n';
 import { MapView, type BaseLayer, type MapHandle } from './MapView';
+import { locationSteps } from './locationHelp';
 import { GoogleMapView } from './GoogleMapView';
 
 // Set in Amplify (Hosting -> Environment variables -> VITE_GOOGLE_MAPS_API_KEY). Without it, or if
@@ -52,7 +53,8 @@ type Sheet =
   | { kind: 'form'; mode: 'new'; at: LatLng; fields: Fields }
   | { kind: 'form'; mode: 'edit'; id: string; code: string; at: LatLng; fields: Fields; ownerCode?: string }
   | { kind: 'code'; id: string; code: string }
-  | { kind: 'askCode'; id: string; error?: string };
+  | { kind: 'askCode'; id: string; error?: string }
+  | { kind: 'locHelp'; forPlacing: boolean };
 
 type Placing = {
   draft: LatLng | null;
@@ -246,8 +248,14 @@ export default function App() {
   // ---------- location ----------
 
   const locate = (forPlacing: boolean) => {
+    // Permission denied or location switched off -> step-by-step help for this phone.
+    // A plain timeout (weak signal) -> a short message instead.
+    const failed = (err?: GeolocationPositionError) => {
+      if (err && err.code === err.TIMEOUT) showToast(t.locationTimeout);
+      else setSheet({ kind: 'locHelp', forPlacing });
+    };
     if (!('geolocation' in navigator)) {
-      showToast(t.locationOff);
+      failed();
       return;
     }
     const onFix = (pos: GeolocationPosition) => {
@@ -263,7 +271,7 @@ export default function App() {
           setPlacing((cur) => (cur ? { ...cur, draft: p } : cur));
           mapRef.current?.focus(p, 18);
         },
-        () => showToast(t.locationOff),
+        (err) => failed(err),
         { enableHighAccuracy: true, timeout: 15000 },
       );
       return;
@@ -286,12 +294,12 @@ export default function App() {
           else showToast(t.locationOutside);
         }
       },
-      () => {
+      (err) => {
         if (watchId.current !== null) navigator.geolocation.clearWatch(watchId.current);
         watchId.current = null;
         setTracking(false);
         setUserPos(null);
-        showToast(t.locationOff);
+        failed(err);
       },
       { enableHighAccuracy: true, maximumAge: 10000 },
     );
@@ -484,6 +492,17 @@ export default function App() {
                 setSheet(null);
                 showToast(t.removed);
                 refresh();
+              }}
+            />
+          )}
+          {sheet.kind === 'locHelp' && (
+            <LocationHelpSheet
+              t={t}
+              steps={locationSteps(lang)}
+              onRetry={() => {
+                const forPlacing = sheet.forPlacing;
+                setSheet(null);
+                locate(forPlacing);
               }}
             />
           )}
@@ -734,6 +753,24 @@ function FormSheet(props: {
         </div>
       )}
     </form>
+  );
+}
+
+function LocationHelpSheet({ t, steps, onRetry }: { t: T; steps: string[]; onRetry: () => void }) {
+  return (
+    <>
+      <h2>{t.locHelpTitle}</h2>
+      <p className="muted">{t.locHelpIntro}</p>
+      <ol className="steps">
+        {steps.map((s) => (
+          <li key={s}>{s}</li>
+        ))}
+      </ol>
+      <button className="btn btn-primary btn-wide" onClick={onRetry}>
+        {t.locHelpRetry}
+      </button>
+      <p className="muted small">{t.locHelpWithout}</p>
+    </>
   );
 }
 

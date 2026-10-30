@@ -678,3 +678,21 @@ textarea.input {
   letter-spacing: 0.04em;
   user-select: all;
 }
+
+/* ---------- location help ---------- */
+
+.steps {
+  margin: 4px 0 8px;
+  padding-left: 22px;
+}
+
+.steps li {
+  margin: 0 0 8px;
+  padding-left: 4px;
+  line-height: 1.4;
+}
+
+.muted.small {
+  font-size: 0.85rem;
+  margin-top: 12px;
+}
