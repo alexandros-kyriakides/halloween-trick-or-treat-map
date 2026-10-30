@@ -696,3 +696,37 @@ textarea.input {
   font-size: 0.85rem;
   margin-top: 12px;
 }
+
+/* ---------- house / apartment ---------- */
+
+.kind-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin-top: 12px;
+  padding: 4px;
+  border-radius: 14px;
+  background: #ece3ef;
+}
+
+.kind-switch button {
+  min-height: 44px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--plum);
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.kind-switch button[aria-checked='true'] {
+  background: var(--plum);
+  color: var(--paper);
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 10px;
+}

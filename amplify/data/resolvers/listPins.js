@@ -35,6 +35,8 @@ export function response(ctx) {
           names: e.names ?? null,
           buzzer: e.buzzer ?? null,
           notes: e.notes ?? null,
+          aptNumber: e.aptNumber ?? null,
+          floor: e.floor ?? null,
         }
       : { id: `pin-${i}`, lat: e.lat, lng: e.lng },
   );

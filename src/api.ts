@@ -10,6 +10,8 @@ export type Pin = {
   names?: string | null;
   buzzer?: string | null;
   notes?: string | null;
+  aptNumber?: string | null;
+  floor?: string | null;
   /** Only from getEntryForEdit, when the superuser code was used. */
   superuser?: boolean | null;
   editCode?: string | null;
@@ -24,6 +26,8 @@ export type EntryFields = {
   names: string | null;
   buzzer: string | null;
   notes: string | null;
+  aptNumber: string | null;
+  floor: string | null;
 };
 
 export class ApiError extends Error {
@@ -76,9 +80,9 @@ async function makeDemoCall(): Promise<Call> {
   const sim = createSimBackend({ env });
   const near = (dLat: number, dLng: number) => ({ lat: 35.0757663 + dLat, lng: 33.313154 + dLng });
   const seed = [
-    { ...near(0.0021, -0.0012), apartment: '101', names: 'Eleni & Andreas', buzzer: 'Papadopoulos' },
-    { ...near(0.0021, -0.0012), apartment: '302', names: 'Sophie', notes: 'Lift is on the left' },
-    { ...near(0.0021, -0.0012), apartment: '4th floor', names: 'Marios & Christina' },
+    { ...near(0.0021, -0.0012), aptNumber: '101', floor: '1', names: 'Eleni & Andreas' },
+    { ...near(0.0021, -0.0012), aptNumber: '302', floor: '3', names: 'Sophie', notes: 'Lift is on the left' },
+    { ...near(0.0021, -0.0012), aptNumber: '401', floor: '4', names: 'Marios & Christina' },
     { ...near(-0.0018, 0.0026), names: 'Anna', notes: 'Side gate, ring twice' },
     { ...near(0.0006, 0.0041), names: 'Giorgos & Maria' },
     { ...near(-0.0042, -0.0035), names: 'The Charalambous family' },
@@ -105,9 +109,11 @@ function call<T>(field: string, query: string, variables: Record<string, unknown
   return callPromise.then((c) => c(field, query, variables) as Promise<T>);
 }
 
-const PIN = 'id lat lng apartment names buzzer notes';
-const FIELD_VARS = '$lat: Float!, $lng: Float!, $apartment: String, $names: String, $buzzer: String, $notes: String';
-const FIELD_ARGS = 'lat: $lat, lng: $lng, apartment: $apartment, names: $names, buzzer: $buzzer, notes: $notes';
+const PIN = 'id lat lng apartment names buzzer notes aptNumber floor';
+const FIELD_VARS =
+  '$lat: Float!, $lng: Float!, $apartment: String, $names: String, $buzzer: String, $notes: String, $aptNumber: String, $floor: String';
+const FIELD_ARGS =
+  'lat: $lat, lng: $lng, apartment: $apartment, names: $names, buzzer: $buzzer, notes: $notes, aptNumber: $aptNumber, floor: $floor';
 
 export const api = {
   listPins: (groupCode: string | null) =>

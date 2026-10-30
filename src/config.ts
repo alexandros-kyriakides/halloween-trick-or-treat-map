@@ -30,4 +30,4 @@ export const SATELLITE_ATTRIBUTION =
   'Imagery &copy; Esri, Maxar, Earthstar Geographics, and the GIS User Community';
 
 /** Must match the resolver limits in amplify/data/resolvers. */
-export const LIMITS = { apartment: 40, names: 60, buzzer: 40, notes: 200 } as const;
+export const LIMITS = { names: 60, notes: 200, aptNumber: 20, floor: 10 } as const;

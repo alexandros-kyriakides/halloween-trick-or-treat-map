@@ -346,3 +346,25 @@ test('superuser code of exactly 10 letters/digits works; 9 does not', async () =
   const b = await add();
   await rejects(api.call('getEntryForEdit', { id: b.id, editCode: 'ABCD-12345' }), 'WRONG_CODE');
 });
+
+test('apartment number and floor are stored, returned with the group code, and limited', async () => {
+  const a = await add({ aptNumber: ' 302 ', floor: '3', names: 'Sophie' });
+  const h = await add({ names: 'House family' });
+  assert.equal(api.table.get(a.id).aptNumber, '302');
+  const list = await api.call('listPins', { groupCode: 'TESTCODE' });
+  const byName = Object.fromEntries(list.pins.map((p) => [p.names, p]));
+  assert.equal(byName.Sophie.aptNumber, '302');
+  assert.equal(byName.Sophie.floor, '3');
+  assert.equal(byName['House family'].aptNumber, null);
+  const anon = await api.call('listPins', {});
+  assert.ok(anon.pins.every((p) => p.aptNumber === undefined && p.floor === undefined));
+  await rejects(add({ aptNumber: 'x'.repeat(21) }), 'TOO_LONG');
+  await rejects(add({ floor: 'x'.repeat(11) }), 'TOO_LONG');
+  // switching to a house clears number and floor, and the old free-text fields
+  const pin = await api.call('updateEntry', {
+    id: a.id, editCode: a.editCode, ...CENTER, names: 'Sophie', aptNumber: null, floor: null, apartment: null, buzzer: null,
+  });
+  assert.equal(pin.aptNumber, null);
+  assert.equal(api.table.get(a.id).floor, undefined);
+  assert.ok(h.id);
+});
