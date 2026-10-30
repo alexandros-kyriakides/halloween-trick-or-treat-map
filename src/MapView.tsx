@@ -1,10 +1,13 @@
 import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { BOUNDS, OSM_ATTRIBUTION, OSM_TILES } from './config';
+import { BOUNDS, OSM_ATTRIBUTION, OSM_TILES, SATELLITE_ATTRIBUTION, SATELLITE_TILES, STREET_LABEL_TILES } from './config';
+
+export type BaseLayer = 'satellite' | 'map';
 import type { LatLng, PinGroup } from './geo';
 
 type Props = {
+  baseLayer: BaseLayer;
   groups: PinGroup[];
   selectedKey: string | null;
   draft: LatLng | null;
@@ -48,6 +51,7 @@ export function MapView(props: Props) {
   const markers = useRef<L.LayerGroup | null>(null);
   const draftMarker = useRef<L.Marker | null>(null);
   const userMarker = useRef<L.CircleMarker | null>(null);
+  const bases = useRef<Record<BaseLayer, L.Layer> | null>(null);
   const latest = useRef(props);
   latest.current = props;
 
@@ -58,7 +62,14 @@ export function MapView(props: Props) {
       maxBoundsViscosity: 1,
       attributionControl: true,
     });
-    L.tileLayer(OSM_TILES, { maxZoom: 19, attribution: OSM_ATTRIBUTION }).addTo(m);
+    bases.current = {
+      map: L.tileLayer(OSM_TILES, { maxZoom: 20, maxNativeZoom: 19, attribution: OSM_ATTRIBUTION }),
+      satellite: L.layerGroup([
+        L.tileLayer(SATELLITE_TILES, { maxZoom: 20, maxNativeZoom: 19, attribution: SATELLITE_ATTRIBUTION }),
+        L.tileLayer(STREET_LABEL_TILES, { maxZoom: 20, maxNativeZoom: 19, opacity: 0.9 }),
+      ]),
+    };
+    bases.current[props.baseLayer].addTo(m);
 
     // Plum-tinted mask over everything outside the 2 km box, plus a dashed edge.
     const world: L.LatLngTuple[] = [[-89, -179], [-89, 179], [89, 179], [89, -179]];
@@ -69,7 +80,7 @@ export function MapView(props: Props) {
       [BOUNDS.south, BOUNDS.east],
     ];
     L.polygon([world, hole], { stroke: false, fillColor: '#3B1F4A', fillOpacity: 0.55, interactive: false }).addTo(m);
-    L.rectangle(area, { color: '#FF8A1F', weight: 2, dashArray: '6 6', fill: false, interactive: false }).addTo(m);
+    L.rectangle(area, { color: '#FF8A1F', weight: 3, dashArray: '6 6', fill: false, interactive: false }).addTo(m);
 
     const fit = () => {
       const z = m.getBoundsZoom(area, false);
@@ -90,6 +101,20 @@ export function MapView(props: Props) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Satellite / map switch
+  useEffect(() => {
+    const m = map.current;
+    const b = bases.current;
+    if (!m || !b) return;
+    for (const [name, layer] of Object.entries(b)) {
+      if (name === props.baseLayer) {
+        if (!m.hasLayer(layer)) layer.addTo(m);
+      } else if (m.hasLayer(layer)) {
+        m.removeLayer(layer);
+      }
+    }
+  }, [props.baseLayer]);
 
   // Home pins
   useEffect(() => {

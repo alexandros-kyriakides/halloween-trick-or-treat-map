@@ -14,6 +14,9 @@ const en = {
   groupCodeWrong: "That group code isn't right. Check the Viber message.",
 
   addHome: 'Add my home',
+  mapView: 'Map view',
+  satellite: 'Satellite',
+  streetMap: 'Map',
   myLocation: 'Show my location',
   locationOutside: "You're outside the map area.",
   locationOff: 'Location is off for this page. You can still find homes on the map.',
@@ -113,6 +116,9 @@ const el: Dict = {
   groupCodeWrong: 'Ο κωδικός ομάδας δεν είναι σωστός. Ελέγξτε το μήνυμα στο Viber.',
 
   addHome: 'Προσθήκη του σπιτιού μου',
+  mapView: 'Προβολή χάρτη',
+  satellite: 'Δορυφόρος',
+  streetMap: 'Χάρτης',
   myLocation: 'Η τοποθεσία μου',
   locationOutside: 'Βρίσκεστε έξω από την περιοχή του χάρτη.',
   locationOff: 'Η τοποθεσία είναι απενεργοποιημένη για αυτή τη σελίδα. Μπορείτε να βρείτε τα σπίτια στον χάρτη.',
