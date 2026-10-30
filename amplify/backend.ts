@@ -38,8 +38,8 @@ if (!groupCode) {
 // entry from the site. It skips the wrong-code lockout, so it must be long and secret.
 const superCode = (process.env.SUPER_CODE ?? '').trim();
 const norm = (s: string) => s.toUpperCase().replace(/[\s-]/g, '');
-if (superCode && norm(superCode).length < 12) {
-  throw new Error('SUPER_CODE must be at least 12 letters/digits (dashes and spaces are ignored).');
+if (superCode && norm(superCode).length < 10) {
+  throw new Error('SUPER_CODE must be at least 10 letters/digits (dashes and spaces are ignored).');
 }
 if (superCode && norm(superCode) === norm(groupCode)) {
   throw new Error('SUPER_CODE must be different from GROUP_CODE.');
