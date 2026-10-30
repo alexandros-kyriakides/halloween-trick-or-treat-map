@@ -5,14 +5,15 @@ import type { BaseLayer } from './MapView';
 import type { T } from './i18n';
 import { detectPlatform } from './locationHelp';
 
-// A printable page: one map image of the whole area with numbered markers, and a numbered
+// A printable page: one map image zoomed to the participating homes, with numbered markers, and a numbered
 // list of the homes. The map image comes from Google's Maps Static API when a Google key is
 // set (it must have "Maps Static API" enabled), otherwise, or if that fails, from Esri.
 
 type Tile = { url: string; x: number; y: number; w: number; h: number };
 type View = { tiles: Tile[]; west: number; east: number; north: number; south: number; w: number; h: number };
 
-const SIZE = 880; // CSS pixels of the Esri map; images are requested at 2x for sharp printing
+const SIZE = 640; // CSS pixels of the map (Google's single-image maximum); requested at 2x
+const MARGIN = 50; // CSS pixels kept free around the outermost homes
 
 function mercY(lat: number) {
   const r = (lat * Math.PI) / 180;
@@ -22,54 +23,69 @@ function latFromMercY(y: number) {
   return ((2 * Math.atan(Math.exp(y)) - Math.PI / 2) * 180) / Math.PI;
 }
 
-function googleView(key: string, base: BaseLayer, lang: string): View {
-  // One image, no stitching: 640 x 640 is the largest Google serves (1280 px at scale 2).
-  // At zoom 15 the 1.5 km box is ~384 px of it, with the surroundings around it.
-  const zoom = 15;
-  const size = 640;
-  const half = size / 2;
+type Frame = { lat: number; lng: number; zoom: number; west: number; east: number; north: number; south: number };
+
+/**
+ * The square map frame: zoomed so all homes fit with a margin, centred on them.
+ * Whole zoom levels (Google needs them), between 15 (the whole area) and 18 (street level).
+ * With no homes, the whole 1.5 km area.
+ */
+export function fitFrame(groups: { lat: number; lng: number }[]): Frame {
+  let lng = CENTER[1];
+  let my = mercY(CENTER[0]);
+  let zoom = 15;
+  if (groups.length > 0) {
+    const lngs = groups.map((g) => g.lng);
+    const ys = groups.map((g) => mercY(g.lat));
+    const [w, e] = [Math.min(...lngs), Math.max(...lngs)];
+    const [s, n] = [Math.min(...ys), Math.max(...ys)];
+    lng = (w + e) / 2;
+    my = (s + n) / 2;
+    // Map size in world pixels at zoom 0: 256 for 360 degrees / 2*pi of Mercator y.
+    const spanAt0 = Math.max(((e - w) / 360) * 256, ((n - s) / (2 * Math.PI)) * 256, 1e-9);
+    zoom = Math.max(15, Math.min(18, Math.floor(Math.log2((SIZE - 2 * MARGIN) / spanAt0))));
+  }
   const worldPx = 256 * 2 ** zoom;
-  const degPerPx = 360 / worldPx;
-  const radPerPx = (2 * Math.PI) / worldPx;
-  const cy = mercY(CENTER[0]);
-  const west = CENTER[1] - half * degPerPx;
-  const east = CENTER[1] + half * degPerPx;
-  const north = latFromMercY(cy + half * radPerPx);
-  const south = latFromMercY(cy - half * radPerPx);
+  const half = SIZE / 2;
+  return {
+    lat: latFromMercY(my),
+    lng,
+    zoom,
+    west: lng - half * (360 / worldPx),
+    east: lng + half * (360 / worldPx),
+    north: latFromMercY(my + half * ((2 * Math.PI) / worldPx)),
+    south: latFromMercY(my - half * ((2 * Math.PI) / worldPx)),
+  };
+}
+
+function googleView(f: Frame, key: string, base: BaseLayer, lang: string): View {
   const url =
     'https://maps.googleapis.com/maps/api/staticmap?' +
     new URLSearchParams({
-      center: `${CENTER[0]},${CENTER[1]}`,
-      zoom: String(zoom),
-      size: `${size}x${size}`,
+      center: `${f.lat.toFixed(7)},${f.lng.toFixed(7)}`,
+      zoom: String(f.zoom),
+      size: `${SIZE}x${SIZE}`,
       scale: '2',
       maptype: base === 'satellite' ? 'hybrid' : 'roadmap',
       language: lang,
       key,
     }).toString();
-  return { tiles: [{ url, x: 0, y: 0, w: size, h: size }], west, east, north, south, w: size, h: size };
+  return { tiles: [{ url, x: 0, y: 0, w: SIZE, h: SIZE }], ...f, w: SIZE, h: SIZE };
 }
 
-function esriView(base: BaseLayer): View {
-  const padLat = (BOUNDS.north - BOUNDS.south) * 0.08;
-  const padLng = (BOUNDS.east - BOUNDS.west) * 0.08;
-  const v = { west: BOUNDS.west - padLng, east: BOUNDS.east + padLng, north: BOUNDS.north + padLat, south: BOUNDS.south - padLat };
+function esriView(f: Frame, base: BaseLayer): View {
   const service = base === 'satellite' ? 'World_Imagery' : 'World_Street_Map';
-  // Keep the image's aspect equal to the box's aspect in Web Mercator, so markers line up.
-  const aspect = ((v.east - v.west) * Math.PI) / 180 / (mercY(v.north) - mercY(v.south));
-  const w = SIZE;
-  const h = Math.round(SIZE / aspect);
   const url =
     `https://server.arcgisonline.com/ArcGIS/rest/services/${service}/MapServer/export?` +
     new URLSearchParams({
-      bbox: `${v.west},${v.south},${v.east},${v.north}`,
+      bbox: `${f.west},${f.south},${f.east},${f.north}`,
       bboxSR: '4326',
       imageSR: '3857',
-      size: `${w * 2},${h * 2}`,
+      size: `${SIZE * 2},${SIZE * 2}`,
       format: 'jpg',
       f: 'image',
     }).toString();
-  return { tiles: [{ url, x: 0, y: 0, w, h }], ...v, w, h };
+  return { tiles: [{ url, x: 0, y: 0, w: SIZE, h: SIZE }], ...f, w: SIZE, h: SIZE };
 }
 
 function project(v: View, lat: number, lng: number) {
@@ -97,9 +113,10 @@ export function PrintView(props: {
 }) {
   const { t } = props;
   const [useEsri, setUseEsri] = useState(!props.googleKey);
+  const frame = useMemo(() => fitFrame(props.groups), [props.groups]);
   const view = useMemo(
-    () => (useEsri ? esriView(props.baseLayer) : googleView(props.googleKey, props.baseLayer, props.lang)),
-    [useEsri, props.baseLayer, props.googleKey, props.lang],
+    () => (useEsri ? esriView(frame, props.baseLayer) : googleView(frame, props.googleKey, props.baseLayer, props.lang)),
+    [useEsri, frame, props.baseLayer, props.googleKey, props.lang],
   );
   const numbered = useMemo(() => numberGroups(props.groups), [props.groups]);
   const hasNotes = props.groups.some((g) => g.pins.some((p) => p.notes));
@@ -130,9 +147,11 @@ export function PrintView(props: {
       canvas.height = view.h * s;
       const c = canvas.getContext('2d')!;
       for (const { img, tile } of images) c.drawImage(img, tile.x * s, tile.y * s, tile.w * s, tile.h * s);
-      c.strokeStyle = '#FF8A1F';
-      c.lineWidth = 3 * s;
-      c.strokeRect(box.a.x * s, box.a.y * s, (box.b.x - box.a.x) * s, (box.b.y - box.a.y) * s);
+      if (numbered.length === 0) {
+        c.strokeStyle = '#FF8A1F';
+        c.lineWidth = 3 * s;
+        c.strokeRect(box.a.x * s, box.a.y * s, (box.b.x - box.a.x) * s, (box.b.y - box.a.y) * s);
+      }
       for (const { n, g } of numbered) {
         const p = project(view, g.lat, g.lng);
         c.beginPath();
@@ -202,6 +221,7 @@ export function PrintView(props: {
               }}
             />
           ))}
+          {numbered.length === 0 && (
           <div
             className="print-box"
             style={{
@@ -211,6 +231,7 @@ export function PrintView(props: {
               height: pct(box.b.y - box.a.y, view.h),
             }}
           />
+          )}
           {numbered.map(({ n, g }) => {
             const p = project(view, g.lat, g.lng);
             return (
