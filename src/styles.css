@@ -772,7 +772,7 @@ textarea.input {
 }
 
 .print-page {
-  max-width: 760px;
+  max-width: 912px;
   margin: 0 auto;
   padding: 16px;
 }
@@ -797,9 +797,8 @@ textarea.input {
 }
 
 .print-map img {
+  position: absolute;
   display: block;
-  width: 100%;
-  height: 100%;
 }
 
 .print-box {
@@ -810,14 +809,14 @@ textarea.input {
 
 .print-marker {
   position: absolute;
-  width: 22px;
-  height: 22px;
-  margin: -11px 0 0 -11px;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
   border-radius: 50%;
   border: 2px solid var(--plum);
   background: var(--pumpkin);
   color: var(--plum);
-  font: 800 11px/18px Arial, sans-serif;
+  font: 800 13px/22px Arial, sans-serif;
   text-align: center;
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
@@ -853,7 +852,7 @@ textarea.input {
 @media print {
   @page {
     size: A4 portrait;
-    margin: 12mm;
+    margin: 8mm;
   }
   body {
     background: #fff;
@@ -869,6 +868,24 @@ textarea.input {
   .print-page {
     padding: 0;
     max-width: none;
+  }
+  /* The map takes the full page width (about 194 mm square on A4). */
+  .print-map {
+    max-width: none !important;
+    border-radius: 0;
+  }
+  .print-page h1 {
+    font-size: 18pt;
+  }
+  .print-when {
+    margin: 0 0 3mm;
+    font-size: 10pt;
+  }
+  .print-credit {
+    margin: 1mm 0 3mm;
+  }
+  .print-list {
+    font-size: 10pt;
   }
   .print-map img {
     -webkit-print-color-adjust: exact;
