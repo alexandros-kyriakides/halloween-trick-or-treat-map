@@ -47,6 +47,19 @@ All entries live in one DynamoDB table: **DynamoDB → Tables → `halloween-map
 - **Remove spam or an unwanted entry:** select the row → **Actions → Delete items**.
 - **Unlock a home after wrong codes:** delete the `attempts`, `attemptWindowStart` and `strikes` values on that row.
 
+## Google Maps key
+
+The map uses Google Maps when the Amplify environment variable `VITE_GOOGLE_MAPS_API_KEY` is set. Without it, or if Google rejects the key, the site falls back to Esri maps automatically.
+
+1. https://console.cloud.google.com → create a project, e.g. `halloween-map`, and link a billing account. Google requires billing, but 10,000 map loads a month are free.
+2. **APIs & Services → Library → Maps JavaScript API → Enable**.
+3. **APIs & Services → Credentials → Create credentials → API key**, then edit the key:
+   - **Application restrictions:** Websites → add `https://main.<app-id>.amplifyapp.com/*`
+   - **API restrictions:** Restrict key → only **Maps JavaScript API**
+4. Amplify → Hosting → Environment variables → add `VITE_GOOGLE_MAPS_API_KEY` = the key → **Redeploy this version**.
+
+The key ends up inside the web page (every Google Maps site works this way). The website restriction is what stops others from using it.
+
 ## Operations runbook
 
 Commands use the AWS CLI with your admin profile; set `TABLE=halloween-map-entries-main` first.
@@ -130,4 +143,4 @@ npm run typecheck
 - `customHttp.yml`: security headers (Content-Security-Policy, noindex, `strict-origin-when-cross-origin` referrer, which OpenStreetMap's tile policy needs).
 - `devsim/`: the in-memory AppSync/DynamoDB stand-in used by `npm run demo` and the tests. It never ships in the real site.
 
-Map area: a 2 km × 2 km box centred on 35.0757663 N, 33.3131540 E. Its edges are 1 km geodesic offsets: S 35.0667526, N 35.0847800, W 33.3021896, E 33.3241184.
+Map area: a 1.5 km × 1.5 km box centred on 35.0757663 N, 33.3131540 E. Its edges are 750 m geodesic offsets: S 35.0690060, N 35.0825266, W 33.3049307, E 33.3213773.

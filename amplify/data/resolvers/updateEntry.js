@@ -3,11 +3,11 @@
 import { util } from '@aws-appsync/utils';
 
 const MAX_ATTEMPTS = 5;
-// 2 km x 2 km box centred on 35.0757663 N, 33.3131540 E (1 km geodesic offsets, WGS84).
-const SOUTH = 35.0667526;
-const NORTH = 35.08478;
-const WEST = 33.3021896;
-const EAST = 33.3241184;
+// 1.5 km x 1.5 km box centred on 35.0757663 N, 33.3131540 E (750 m geodesic offsets, WGS84).
+const SOUTH = 35.069006;
+const NORTH = 35.0825266;
+const WEST = 33.3049307;
+const EAST = 33.3213773;
 
 const LIMITS = { apartment: 40, names: 60, buzzer: 40, notes: 200 };
 
