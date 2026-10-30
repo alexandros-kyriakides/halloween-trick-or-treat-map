@@ -946,3 +946,7 @@ textarea.input {
   font-weight: 700;
   white-space: nowrap;
 }
+
+.field-row-street {
+  grid-template-columns: 1.6fr 1fr;
+}

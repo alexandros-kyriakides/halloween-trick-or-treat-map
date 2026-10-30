@@ -383,3 +383,15 @@ test('street number is required on create and update, trimmed and limited', asyn
   const pin = await api.call('updateEntry', { id: a.id, editCode: a.editCode, ...CENTER, streetNumber: '16' });
   assert.equal(pin.streetNumber, '16');
 });
+
+test('street name is optional, stored and limited', async () => {
+  const a = await add({ streetName: ' Lykavitou ' });
+  const b = await add();
+  const list = await api.call('listPins', { groupCode: 'TESTCODE' });
+  const byId = Object.fromEntries(list.pins.map((p) => [p.id, p]));
+  assert.equal(byId[a.id].streetName, 'Lykavitou');
+  assert.equal(byId[b.id].streetName, null);
+  await rejects(add({ streetName: 'x'.repeat(61) }), 'TOO_LONG');
+  const pin = await api.call('updateEntry', { streetNumber: '12', id: a.id, editCode: a.editCode, ...CENTER, streetName: '' });
+  assert.equal(pin.streetName, null);
+});

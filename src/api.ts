@@ -13,6 +13,7 @@ export type Pin = {
   aptNumber?: string | null;
   floor?: string | null;
   streetNumber?: string | null;
+  streetName?: string | null;
   /** Only from getEntryForEdit, when the superuser code was used. */
   superuser?: boolean | null;
   editCode?: string | null;
@@ -30,6 +31,7 @@ export type EntryFields = {
   aptNumber: string | null;
   floor: string | null;
   streetNumber: string | null;
+  streetName: string | null;
 };
 
 export class ApiError extends Error {
@@ -86,7 +88,7 @@ async function makeDemoCall(): Promise<Call> {
     { ...near(0.0021, -0.0012), aptNumber: '302', floor: '3', streetNumber: '12', names: 'Sophie', notes: 'Lift is on the left' },
     { ...near(0.0021, -0.0012), aptNumber: '401', floor: '4', streetNumber: '12', names: 'Marios & Christina' },
     { ...near(-0.0018, 0.0026), names: 'Anna', streetNumber: '7', notes: 'Side gate, ring twice' },
-    { ...near(0.0006, 0.0041), names: 'Giorgos & Maria', streetNumber: '23' },
+    { ...near(0.0006, 0.0041), names: 'Giorgos & Maria', streetNumber: '23', streetName: 'Lykavitou' },
     { ...near(-0.0042, -0.0035), names: 'The Charalambous family', streetNumber: '4' },
   ];
   for (const s of seed) await sim.call('createEntry', { groupCode: env.GROUP_CODE, consent: true, ...s });
@@ -111,11 +113,11 @@ function call<T>(field: string, query: string, variables: Record<string, unknown
   return callPromise.then((c) => c(field, query, variables) as Promise<T>);
 }
 
-const PIN = 'id lat lng apartment names buzzer notes aptNumber floor streetNumber';
+const PIN = 'id lat lng apartment names buzzer notes aptNumber floor streetNumber streetName';
 const FIELD_VARS =
-  '$lat: Float!, $lng: Float!, $apartment: String, $names: String, $buzzer: String, $notes: String, $aptNumber: String, $floor: String, $streetNumber: String';
+  '$lat: Float!, $lng: Float!, $apartment: String, $names: String, $buzzer: String, $notes: String, $aptNumber: String, $floor: String, $streetNumber: String, $streetName: String';
 const FIELD_ARGS =
-  'lat: $lat, lng: $lng, apartment: $apartment, names: $names, buzzer: $buzzer, notes: $notes, aptNumber: $aptNumber, floor: $floor, streetNumber: $streetNumber';
+  'lat: $lat, lng: $lng, apartment: $apartment, names: $names, buzzer: $buzzer, notes: $notes, aptNumber: $aptNumber, floor: $floor, streetNumber: $streetNumber, streetName: $streetName';
 
 export const api = {
   listPins: (groupCode: string | null) =>
