@@ -730,3 +730,148 @@ textarea.input {
   grid-template-columns: 1.4fr 1fr;
   gap: 10px;
 }
+
+/* ---------- print view ---------- */
+
+.print-btn {
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+
+.print-view {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  overflow-y: auto;
+  background: #fff;
+  color: #1d1022;
+}
+
+.print-actions {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
+  background: var(--paper);
+  box-shadow: 0 2px 8px rgba(59, 31, 74, 0.2);
+}
+
+.print-actions .btn {
+  flex: 1 1 auto;
+  min-height: 44px;
+}
+
+.print-hint {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.print-page {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.print-page h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--plum);
+}
+
+.print-when {
+  margin: 4px 0 12px;
+  color: var(--muted);
+}
+
+.print-map {
+  position: relative;
+  width: 100%;
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.print-map img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.print-box {
+  position: absolute;
+  border: 3px solid var(--pumpkin);
+  pointer-events: none;
+}
+
+.print-marker {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  margin: -11px 0 0 -11px;
+  border-radius: 50%;
+  border: 2px solid var(--plum);
+  background: var(--pumpkin);
+  color: var(--plum);
+  font: 800 11px/18px Arial, sans-serif;
+  text-align: center;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.print-credit {
+  margin: 4px 0 12px;
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-align: right;
+}
+
+.print-list {
+  margin: 0;
+  padding-left: 28px;
+  columns: 2 260px;
+  column-gap: 24px;
+}
+
+.print-list li {
+  break-inside: avoid;
+  margin-bottom: 8px;
+}
+
+.print-entry {
+  line-height: 1.35;
+}
+
+.print-notes {
+  color: var(--muted);
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm;
+  }
+  body {
+    background: #fff;
+  }
+  .app > :not(.print-view),
+  .no-print {
+    display: none !important;
+  }
+  .print-view {
+    position: static;
+    overflow: visible;
+  }
+  .print-page {
+    padding: 0;
+    max-width: none;
+  }
+  .print-map img {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
