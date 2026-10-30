@@ -50,6 +50,10 @@ const en = {
   optional: 'optional',
   apartment: 'Apartment / floor',
   homeKind: 'Type of home',
+  streetNumber: 'Street number',
+  streetNumberHint: 'The number on your house or building, e.g. 12',
+  streetNumberShort: 'No.',
+  streetNumberMissing: 'Please enter the street number.',
   printTitle: 'Print or save the map',
   printPrint: 'Print / save as PDF',
   printSaveImage: 'Save as image',
@@ -122,6 +126,7 @@ const en = {
     TOO_LONG: 'One of the fields is too long.',
     BAD_GROUP_CODE: "That group code isn't right. Check the Viber message.",
     CONSENT_REQUIRED: 'Please tick the box to agree.',
+    STREET_NUMBER_REQUIRED: 'Please enter the street number.',
     CLOSED: 'Trick-or-treat is over. The map is closed.',
     NETWORK: "Couldn't reach the map. Check your connection and try again.",
     OTHER: 'Something went wrong. Please try again.',
@@ -180,6 +185,10 @@ const el: Dict = {
   optional: 'προαιρετικό',
   apartment: 'Διαμέρισμα / όροφος',
   homeKind: 'Τύπος κατοικίας',
+  streetNumber: 'Αριθμός οδού',
+  streetNumberHint: 'Ο αριθμός του σπιτιού ή της πολυκατοικίας, π.χ. 12',
+  streetNumberShort: 'Αρ.',
+  streetNumberMissing: 'Συμπληρώστε τον αριθμό οδού.',
   printTitle: 'Εκτύπωση ή αποθήκευση του χάρτη',
   printPrint: 'Εκτύπωση / αποθήκευση PDF',
   printSaveImage: 'Αποθήκευση ως εικόνα',
@@ -254,6 +263,7 @@ const el: Dict = {
     TOO_LONG: 'Ένα από τα πεδία είναι πολύ μεγάλο.',
     BAD_GROUP_CODE: 'Ο κωδικός ομάδας δεν είναι σωστός. Ελέγξτε το μήνυμα στο Viber.',
     CONSENT_REQUIRED: 'Τσεκάρετε το κουτάκι για να συμφωνήσετε.',
+    STREET_NUMBER_REQUIRED: 'Συμπληρώστε τον αριθμό οδού.',
     CLOSED: 'Το trick-or-treat τελείωσε. Ο χάρτης έκλεισε.',
     NETWORK: 'Δεν υπάρχει σύνδεση με τον χάρτη. Ελέγξτε τη σύνδεσή σας και δοκιμάστε ξανά.',
     OTHER: 'Κάτι πήγε στραβά. Δοκιμάστε ξανά.',
@@ -276,6 +286,7 @@ export function errorText(t: T, e: unknown): string {
     case 'TOO_LONG':
     case 'BAD_GROUP_CODE':
     case 'CONSENT_REQUIRED':
+    case 'STREET_NUMBER_REQUIRED':
     case 'CLOSED':
     case 'NETWORK':
       return t.err[err.type];

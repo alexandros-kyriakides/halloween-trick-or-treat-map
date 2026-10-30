@@ -19,7 +19,7 @@ beforeEach(() => {
 });
 
 const add = (extra = {}) =>
-  api.call('createEntry', { groupCode: 'TESTCODE', consent: true, ...CENTER, ...extra });
+  api.call('createEntry', { groupCode: 'TESTCODE', consent: true, ...CENTER, streetNumber: '12', ...extra });
 
 async function rejects(p, type) {
   await assert.rejects(p, (e) => {
@@ -71,7 +71,7 @@ test('acceptance: two apartments at one location; each controls only their own',
   assert.equal(list.pins.length, 2);
 
   // B uses B's code on A's entry -> refused
-  await rejects(api.call('updateEntry', { id: a.id, editCode: b.editCode, ...CENTER, apartment: 'hacked' }), 'WRONG_CODE');
+  await rejects(api.call('updateEntry', { streetNumber: '12', id: a.id, editCode: b.editCode, ...CENTER, apartment: 'hacked' }), 'WRONG_CODE');
   await rejects(api.call('deleteEntry', { id: a.id, editCode: b.editCode }), 'WRONG_CODE');
   assert.equal(api.table.get(a.id).apartment, '101');
 
@@ -94,14 +94,14 @@ test('edit code is forgiving about case, spaces and the dash', async () => {
 test('updateEntry saves, clears emptied fields, moves the pin and validates', async () => {
   const a = await add({ names: 'Anna', notes: 'ring twice' });
   const moved = { lat: CENTER.lat + 0.001, lng: CENTER.lng - 0.001 };
-  const pin = await api.call('updateEntry', { id: a.id, editCode: a.editCode, ...moved, names: 'Anna & Kostas', notes: '   ' });
+  const pin = await api.call('updateEntry', { streetNumber: '12', id: a.id, editCode: a.editCode, ...moved, names: 'Anna & Kostas', notes: '   ' });
   assert.equal(pin.names, 'Anna & Kostas');
   assert.equal(pin.notes, null);
   assert.equal(pin.lat, moved.lat);
   assert.equal(api.table.get(a.id).notes, undefined);
   assert.equal(api.table.get(a.id).editCode, a.editCode, 'code unchanged');
-  await rejects(api.call('updateEntry', { id: a.id, editCode: a.editCode, lat: 36, lng: 33.31 }), 'OUTSIDE_AREA');
-  await rejects(api.call('updateEntry', { id: a.id, editCode: a.editCode, ...CENTER, names: 'x'.repeat(61) }), 'TOO_LONG');
+  await rejects(api.call('updateEntry', { streetNumber: '12', id: a.id, editCode: a.editCode, lat: 36, lng: 33.31 }), 'OUTSIDE_AREA');
+  await rejects(api.call('updateEntry', { streetNumber: '12', id: a.id, editCode: a.editCode, ...CENTER, names: 'x'.repeat(61) }), 'TOO_LONG');
 });
 
 test('5 wrong codes lock the entry for 15 minutes, even for the right code', async () => {
@@ -129,7 +129,7 @@ test('a correct code resets the attempt counter', async () => {
   for (let i = 0; i < 4; i += 1) await rejects(api.call('getEntryForEdit', { id: a.id, editCode: wrong }), 'WRONG_CODE');
   await api.call('getEntryForEdit', { id: a.id, editCode: a.editCode });
   for (let i = 0; i < 4; i += 1) await rejects(api.call('getEntryForEdit', { id: a.id, editCode: wrong }), 'WRONG_CODE');
-  await api.call('updateEntry', { id: a.id, editCode: a.editCode, ...CENTER, names: 'ok' });
+  await api.call('updateEntry', { streetNumber: '12', id: a.id, editCode: a.editCode, ...CENTER, names: 'ok' });
   assert.equal(api.table.get(a.id).attempts, undefined);
 });
 
@@ -176,7 +176,7 @@ test('after HIDE_AT the map is empty and nothing can be changed', async () => {
   const list = await api.call('listPins', { groupCode: 'TESTCODE' });
   assert.deepEqual(list, { groupCodeOk: false, closed: true, pins: [] });
   await rejects(add(), 'CLOSED');
-  await rejects(api.call('updateEntry', { id: a.id, editCode: a.editCode, ...CENTER }), 'CLOSED');
+  await rejects(api.call('updateEntry', { streetNumber: '12', id: a.id, editCode: a.editCode, ...CENTER }), 'CLOSED');
   await rejects(api.call('deleteEntry', { id: a.id, editCode: a.editCode }), 'CLOSED');
 });
 
@@ -296,7 +296,7 @@ test('superuser code reads, edits and deletes any entry, and sees its edit code'
   const pin = await api.call('getEntryForEdit', { id: a.id, editCode: 'ghost admin 2026 xyz' });
   assert.equal(pin.superuser, true);
   assert.equal(pin.editCode, a.editCode, 'superuser can read the entry code to give it back');
-  await api.call('updateEntry', { id: a.id, editCode: SUPER, ...CENTER, names: 'Anna (fixed)', apartment: '1' });
+  await api.call('updateEntry', { streetNumber: '12', id: a.id, editCode: SUPER, ...CENTER, names: 'Anna (fixed)', apartment: '1' });
   assert.equal(api.table.get(a.id).names, 'Anna (fixed)');
   assert.equal(api.table.get(a.id).editCode, a.editCode, 'entry code unchanged');
   assert.equal(await api.call('deleteEntry', { id: b.id, editCode: SUPER }), true);
@@ -361,10 +361,25 @@ test('apartment number and floor are stored, returned with the group code, and l
   await rejects(add({ aptNumber: 'x'.repeat(21) }), 'TOO_LONG');
   await rejects(add({ floor: 'x'.repeat(11) }), 'TOO_LONG');
   // switching to a house clears number and floor, and the old free-text fields
-  const pin = await api.call('updateEntry', {
+  const pin = await api.call('updateEntry', { streetNumber: '12',
     id: a.id, editCode: a.editCode, ...CENTER, names: 'Sophie', aptNumber: null, floor: null, apartment: null, buzzer: null,
   });
   assert.equal(pin.aptNumber, null);
   assert.equal(api.table.get(a.id).floor, undefined);
   assert.ok(h.id);
+});
+
+test('street number is required on create and update, trimmed and limited', async () => {
+  await rejects(add({ streetNumber: undefined }), 'STREET_NUMBER_REQUIRED');
+  await rejects(add({ streetNumber: '   ' }), 'STREET_NUMBER_REQUIRED');
+  await rejects(add({ streetNumber: 'x'.repeat(11) }), 'TOO_LONG');
+  const a = await add({ streetNumber: ' 14A ' });
+  assert.equal(api.table.get(a.id).streetNumber, '14A');
+  const list = await api.call('listPins', { groupCode: 'TESTCODE' });
+  assert.equal(list.pins[0].streetNumber, '14A');
+  const anon = await api.call('listPins', {});
+  assert.equal(anon.pins[0].streetNumber, undefined);
+  await rejects(api.call('updateEntry', { id: a.id, editCode: a.editCode, ...CENTER, streetNumber: '' }), 'STREET_NUMBER_REQUIRED');
+  const pin = await api.call('updateEntry', { id: a.id, editCode: a.editCode, ...CENTER, streetNumber: '16' });
+  assert.equal(pin.streetNumber, '16');
 });

@@ -32,19 +32,27 @@ function save(key: string, value: unknown) {
 }
 
 type HomeKind = 'house' | 'apartment';
-type Fields = { kind: HomeKind; aptNumber: string; floor: string; names: string; notes: string };
-const emptyFields = (kind: HomeKind = 'house'): Fields => ({ kind, aptNumber: '', floor: '', names: '', notes: '' });
+type Fields = { kind: HomeKind; streetNumber: string; aptNumber: string; floor: string; names: string; notes: string };
+const emptyFields = (kind: HomeKind = 'house'): Fields => ({ kind, streetNumber: '', aptNumber: '', floor: '', names: '', notes: '' });
 const fromPin = (p: Pin): Fields => {
   // Entries saved before 30 Oct have a free-text `apartment` instead of number + floor.
   const aptNumber = p.aptNumber ?? (p.apartment ? p.apartment.slice(0, LIMITS.aptNumber) : '');
   const floor = p.floor ?? '';
-  return { kind: aptNumber || floor ? 'apartment' : 'house', aptNumber, floor, names: p.names ?? '', notes: p.notes ?? '' };
+  return {
+    kind: aptNumber || floor ? 'apartment' : 'house',
+    streetNumber: p.streetNumber ?? '',
+    aptNumber,
+    floor,
+    names: p.names ?? '',
+    notes: p.notes ?? '',
+  };
 };
 const toEntry = (f: Fields, at: LatLng): EntryFields => {
   const apt = f.kind === 'apartment';
   return {
     lat: at.lat,
     lng: at.lng,
+    streetNumber: f.streetNumber.trim() || null,
     aptNumber: (apt && f.aptNumber.trim()) || null,
     floor: (apt && f.floor.trim()) || null,
     names: f.names.trim() || null,
@@ -585,6 +593,11 @@ function GroupSheet(props: {
                   {p.names || '🎃'}
                   {props.myCodes[p.id] && <span className="tag">{t.yours}</span>}
                 </p>
+                {p.streetNumber && (
+                  <p>
+                    <span className="k">{t.streetNumberShort}</span> {p.streetNumber}
+                  </p>
+                )}
                 {(p.aptNumber || p.floor) && (
                   <p>
                     {p.aptNumber && (
@@ -726,7 +739,7 @@ function FormSheet(props: {
     });
 
   const field = (
-    name: 'names' | 'notes' | 'aptNumber' | 'floor',
+    name: 'names' | 'notes' | 'aptNumber' | 'floor' | 'streetNumber',
     label: string,
     hint: string,
     multiline = false,
@@ -739,12 +752,12 @@ function FormSheet(props: {
       {multiline ? (
         <textarea className="input" rows={2} maxLength={LIMITS[name]} placeholder={hint} value={f[name]} onChange={(e) => {
             setF({ ...f, [name]: e.target.value });
-            if (name === 'aptNumber') setError(null);
+            if (name === 'aptNumber' || name === 'streetNumber') setError(null);
           }} />
       ) : (
         <input className="input" maxLength={LIMITS[name]} placeholder={hint} value={f[name]} onChange={(e) => {
             setF({ ...f, [name]: e.target.value });
-            if (name === 'aptNumber') setError(null);
+            if (name === 'aptNumber' || name === 'streetNumber') setError(null);
           }} />
       )}
     </label>
@@ -754,6 +767,10 @@ function FormSheet(props: {
     <form
       onSubmit={(e) => {
         e.preventDefault();
+        if (!f.streetNumber.trim()) {
+          setError(t.streetNumberMissing);
+          return;
+        }
         if (f.kind === 'apartment' && !f.aptNumber.trim()) {
           setError(t.aptNumberMissing);
           return;
@@ -783,6 +800,7 @@ function FormSheet(props: {
           </button>
         ))}
       </div>
+      {field('streetNumber', t.streetNumber, t.streetNumberHint, false, true)}
       {f.kind === 'apartment' && (
         <div className="field-row">
           {field('aptNumber', t.aptNumber, t.aptNumberHint, false, true)}

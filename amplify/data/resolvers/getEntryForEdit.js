@@ -37,6 +37,7 @@ function toPin(e) {
     notes: e.notes ?? null,
     aptNumber: e.aptNumber ?? null,
     floor: e.floor ?? null,
+    streetNumber: e.streetNumber ?? null,
   };
 }
 

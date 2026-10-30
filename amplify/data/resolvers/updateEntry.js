@@ -11,7 +11,7 @@ const EAST = 33.3213773;
 
 // apartment and buzzer are kept for entries saved before 30 Oct; the form now sends
 // aptNumber + floor (apartments only) and no bell field.
-const LIMITS = { apartment: 40, names: 60, buzzer: 40, notes: 200, aptNumber: 20, floor: 10 };
+const LIMITS = { apartment: 40, names: 60, buzzer: 40, notes: 200, aptNumber: 20, floor: 10, streetNumber: 10 };
 
 function norm(s) {
   return (s ?? '').toUpperCase().replaceAll(' ', '').replaceAll('-', '');
@@ -75,12 +75,17 @@ function toPin(e) {
     notes: e.notes ?? null,
     aptNumber: e.aptNumber ?? null,
     floor: e.floor ?? null,
+    streetNumber: e.streetNumber ?? null,
   };
 }
 
 export function request(ctx) {
   const args = ctx.args;
   checkLocation(args.lat, args.lng);
+  // Street number is required for every home (the map alone doesn't say which house it is).
+  if (cleanText(args.streetNumber, 'streetNumber') === null) {
+    util.error('Please enter the street number.', 'STREET_NUMBER_REQUIRED');
+  }
   const text = {
     apartment: cleanText(args.apartment, 'apartment'),
     names: cleanText(args.names, 'names'),
@@ -88,6 +93,7 @@ export function request(ctx) {
     notes: cleanText(args.notes, 'notes'),
     aptNumber: cleanText(args.aptNumber, 'aptNumber'),
     floor: cleanText(args.floor, 'floor'),
+    streetNumber: cleanText(args.streetNumber, 'streetNumber'),
   };
   requireCorrectCode(ctx);
 
