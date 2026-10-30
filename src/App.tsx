@@ -4,7 +4,7 @@ import { api, ApiError, type EntryFields, type Pin, type PinList } from './api';
 import { LIMITS, REFRESH_MS } from './config';
 import { groupPins, insideArea, nearestGroup, type LatLng, type PinGroup } from './geo';
 import { dict, errorText, type Lang, type T } from './i18n';
-import { MapView } from './MapView';
+import { MapView, type BaseLayer } from './MapView';
 
 // ---------- small persistence helpers (browser storage can be unavailable; never fatal) ----------
 
@@ -71,6 +71,8 @@ export default function App() {
   const [toast, setToast] = useState<string | null>(null);
   const watchId = useRef<number | null>(null);
   const [tracking, setTracking] = useState(false);
+  const [baseLayer, setBaseLayer] = useState<BaseLayer>(() => load<BaseLayer>('hm.base', 'satellite'));
+  useEffect(() => save('hm.base', baseLayer), [baseLayer]);
   const mapRef = useRef<L.Map | null>(null);
 
   useEffect(() => {
@@ -298,7 +300,17 @@ export default function App() {
       )}
 
       <main className="map-area">
+        <div className="layer-switch" role="group" aria-label={t.mapView}>
+          <button aria-pressed={baseLayer === 'satellite'} onClick={() => setBaseLayer('satellite')}>
+            {t.satellite}
+          </button>
+          <button aria-pressed={baseLayer === 'map'} onClick={() => setBaseLayer('map')}>
+            {t.streetMap}
+          </button>
+        </div>
+
         <MapView
+          baseLayer={baseLayer}
           groups={closed ? [] : groups}
           selectedKey={selectedGroup?.key ?? null}
           draft={placing?.draft ?? null}

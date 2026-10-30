@@ -619,3 +619,34 @@ textarea.input {
   border-color: var(--danger);
   color: #fff;
 }
+
+/* ---------- satellite / map switch ---------- */
+
+.layer-switch {
+  position: absolute;
+  z-index: 500;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--paper);
+  box-shadow: 0 2px 8px rgba(59, 31, 74, 0.35);
+}
+
+.layer-switch button {
+  min-height: 36px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--plum);
+  font-weight: 700;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.layer-switch button[aria-pressed='true'] {
+  background: var(--plum);
+  color: var(--paper);
+}
