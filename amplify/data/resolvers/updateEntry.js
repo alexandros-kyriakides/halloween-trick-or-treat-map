@@ -9,7 +9,9 @@ const NORTH = 35.0825266;
 const WEST = 33.3049307;
 const EAST = 33.3213773;
 
-const LIMITS = { apartment: 40, names: 60, buzzer: 40, notes: 200 };
+// apartment and buzzer are kept for entries saved before 30 Oct; the form now sends
+// aptNumber + floor (apartments only) and no bell field.
+const LIMITS = { apartment: 40, names: 60, buzzer: 40, notes: 200, aptNumber: 20, floor: 10 };
 
 function norm(s) {
   return (s ?? '').toUpperCase().replaceAll(' ', '').replaceAll('-', '');
@@ -71,6 +73,8 @@ function toPin(e) {
     names: e.names ?? null,
     buzzer: e.buzzer ?? null,
     notes: e.notes ?? null,
+    aptNumber: e.aptNumber ?? null,
+    floor: e.floor ?? null,
   };
 }
 
@@ -82,6 +86,8 @@ export function request(ctx) {
     names: cleanText(args.names, 'names'),
     buzzer: cleanText(args.buzzer, 'buzzer'),
     notes: cleanText(args.notes, 'notes'),
+    aptNumber: cleanText(args.aptNumber, 'aptNumber'),
+    floor: cleanText(args.floor, 'floor'),
   };
   requireCorrectCode(ctx);
 

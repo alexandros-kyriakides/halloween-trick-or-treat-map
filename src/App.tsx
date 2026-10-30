@@ -30,22 +30,29 @@ function save(key: string, value: unknown) {
   }
 }
 
-type Fields = { apartment: string; names: string; buzzer: string; notes: string };
-const emptyFields: Fields = { apartment: '', names: '', buzzer: '', notes: '' };
-const fromPin = (p: Pin): Fields => ({
-  apartment: p.apartment ?? '',
-  names: p.names ?? '',
-  buzzer: p.buzzer ?? '',
-  notes: p.notes ?? '',
-});
-const toEntry = (f: Fields, at: LatLng): EntryFields => ({
-  lat: at.lat,
-  lng: at.lng,
-  apartment: f.apartment.trim() || null,
-  names: f.names.trim() || null,
-  buzzer: f.buzzer.trim() || null,
-  notes: f.notes.trim() || null,
-});
+type HomeKind = 'house' | 'apartment';
+type Fields = { kind: HomeKind; aptNumber: string; floor: string; names: string; notes: string };
+const emptyFields = (kind: HomeKind = 'house'): Fields => ({ kind, aptNumber: '', floor: '', names: '', notes: '' });
+const fromPin = (p: Pin): Fields => {
+  // Entries saved before 30 Oct have a free-text `apartment` instead of number + floor.
+  const aptNumber = p.aptNumber ?? (p.apartment ? p.apartment.slice(0, LIMITS.aptNumber) : '');
+  const floor = p.floor ?? '';
+  return { kind: aptNumber || floor ? 'apartment' : 'house', aptNumber, floor, names: p.names ?? '', notes: p.notes ?? '' };
+};
+const toEntry = (f: Fields, at: LatLng): EntryFields => {
+  const apt = f.kind === 'apartment';
+  return {
+    lat: at.lat,
+    lng: at.lng,
+    aptNumber: (apt && f.aptNumber.trim()) || null,
+    floor: (apt && f.floor.trim()) || null,
+    names: f.names.trim() || null,
+    notes: f.notes.trim() || null,
+    // Old fields: cleared on every save.
+    apartment: null,
+    buzzer: null,
+  };
+};
 
 type Sheet =
   | { kind: 'group'; key: string }
@@ -230,7 +237,7 @@ export default function App() {
     if (placing.edit) {
       setSheet({ kind: 'form', mode: 'edit', id: placing.edit.id, code: placing.edit.code, at, fields: placing.edit.fields });
     } else {
-      setSheet({ kind: 'form', mode: 'new', at, fields: emptyFields });
+      setSheet({ kind: 'form', mode: 'new', at, fields: emptyFields(nearby && sameBuilding ? 'apartment' : 'house') });
     }
     setPlacing(null);
   };
@@ -559,14 +566,24 @@ function GroupSheet(props: {
                   {p.names || '🎃'}
                   {props.myCodes[p.id] && <span className="tag">{t.yours}</span>}
                 </p>
-                {p.apartment && (
+                {(p.aptNumber || p.floor) && (
                   <p>
-                    <span className="k">{t.apartmentShort}</span> {p.apartment}
+                    {p.aptNumber && (
+                      <>
+                        <span className="k">{t.aptShort}</span> {p.aptNumber}
+                      </>
+                    )}
+                    {p.aptNumber && p.floor && ' · '}
+                    {p.floor && (
+                      <>
+                        <span className="k">{t.floorShort}</span> {p.floor}
+                      </>
+                    )}
                   </p>
                 )}
-                {p.buzzer && (
+                {!p.aptNumber && !p.floor && p.apartment && (
                   <p>
-                    <span className="k">{t.ringShort}</span> {p.buzzer}
+                    <span className="k">{t.apartmentShort}</span> {p.apartment}
                   </p>
                 )}
                 {p.notes && <p className="entry-notes">{p.notes}</p>}
@@ -689,15 +706,27 @@ function FormSheet(props: {
       }
     });
 
-  const field = (name: keyof Fields, label: string, hint: string, multiline = false) => (
+  const field = (
+    name: 'names' | 'notes' | 'aptNumber' | 'floor',
+    label: string,
+    hint: string,
+    multiline = false,
+    required = false,
+  ) => (
     <label className="field">
       <span className="field-label">
-        {label} <span className="muted">({t.optional})</span>
+        {label} {!required && <span className="muted">({t.optional})</span>}
       </span>
       {multiline ? (
-        <textarea className="input" rows={2} maxLength={LIMITS[name]} placeholder={hint} value={f[name]} onChange={(e) => setF({ ...f, [name]: e.target.value })} />
+        <textarea className="input" rows={2} maxLength={LIMITS[name]} placeholder={hint} value={f[name]} onChange={(e) => {
+            setF({ ...f, [name]: e.target.value });
+            if (name === 'aptNumber') setError(null);
+          }} />
       ) : (
-        <input className="input" maxLength={LIMITS[name]} placeholder={hint} value={f[name]} onChange={(e) => setF({ ...f, [name]: e.target.value })} />
+        <input className="input" maxLength={LIMITS[name]} placeholder={hint} value={f[name]} onChange={(e) => {
+            setF({ ...f, [name]: e.target.value });
+            if (name === 'aptNumber') setError(null);
+          }} />
       )}
     </label>
   );
@@ -706,6 +735,10 @@ function FormSheet(props: {
     <form
       onSubmit={(e) => {
         e.preventDefault();
+        if (f.kind === 'apartment' && !f.aptNumber.trim()) {
+          setError(t.aptNumberMissing);
+          return;
+        }
         attempt(() => props.onSave(f));
       }}
     >
@@ -715,9 +748,29 @@ function FormSheet(props: {
           {t.adminOwnerCode} <strong className="owner-code">{sheet.ownerCode}</strong>
         </p>
       )}
+      <div className="kind-switch" role="radiogroup" aria-label={t.homeKind}>
+        {(['house', 'apartment'] as const).map((k) => (
+          <button
+            key={k}
+            type="button"
+            role="radio"
+            aria-checked={f.kind === k}
+            onClick={() => {
+              setF({ ...f, kind: k });
+              setError(null);
+            }}
+          >
+            {k === 'house' ? t.kindHouse : t.kindApartment}
+          </button>
+        ))}
+      </div>
+      {f.kind === 'apartment' && (
+        <div className="field-row">
+          {field('aptNumber', t.aptNumber, t.aptNumberHint, false, true)}
+          {field('floor', t.floor, t.floorHint)}
+        </div>
+      )}
       {field('names', t.names, t.namesHint)}
-      {field('apartment', t.apartment, t.apartmentHint)}
-      {field('buzzer', t.buzzer, t.buzzerHint)}
       {field('notes', t.notes, t.notesHint, true)}
       {sheet.mode === 'new' && (
         <label className="check check-consent">

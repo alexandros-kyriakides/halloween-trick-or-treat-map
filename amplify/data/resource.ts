@@ -31,6 +31,8 @@ const schema = a.schema({
     names: a.string(),
     buzzer: a.string(),
     notes: a.string(),
+    aptNumber: a.string(),
+    floor: a.string(),
     // Only set by getEntryForEdit when the superuser code was used.
     superuser: a.boolean(),
     editCode: a.string(),
@@ -72,6 +74,8 @@ const schema = a.schema({
       names: a.string(),
       buzzer: a.string(),
       notes: a.string(),
+      aptNumber: a.string(),
+      floor: a.string(),
     })
     .returns(a.ref('CreatedEntry').required())
     .authorization((allow) => [allow.publicApiKey()])
@@ -88,6 +92,8 @@ const schema = a.schema({
       names: a.string(),
       buzzer: a.string(),
       notes: a.string(),
+      aptNumber: a.string(),
+      floor: a.string(),
     })
     .returns(a.ref('Pin').required())
     .authorization((allow) => [allow.publicApiKey()])

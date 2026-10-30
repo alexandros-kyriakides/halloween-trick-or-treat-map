@@ -28,7 +28,8 @@ export function groupPins(pins: Pin[]): PinGroup[] {
     else groups.push({ key: pin.id, lat: pin.lat, lng: pin.lng, pins: [pin] });
   }
   for (const g of groups) {
-    g.pins.sort((a, b) => (a.apartment ?? '').localeCompare(b.apartment ?? '', undefined, { numeric: true }));
+    const key = (p: Pin) => p.aptNumber ?? p.apartment ?? '';
+    g.pins.sort((a, b) => key(a).localeCompare(key(b), undefined, { numeric: true }));
   }
   return groups;
 }
