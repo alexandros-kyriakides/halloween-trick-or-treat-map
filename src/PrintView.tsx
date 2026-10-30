@@ -229,8 +229,9 @@ export function PrintView(props: {
             <thead>
               <tr>
                 <th>#</th>
-                <th>{t.addressShort}</th>
                 <th>{t.names}</th>
+                <th>{t.streetName}</th>
+                <th>{t.streetNumber}</th>
                 <th>{t.aptShort}</th>
                 <th>{t.floor}</th>
                 <th>{t.printLatLng}</th>
@@ -242,8 +243,9 @@ export function PrintView(props: {
                 g.pins.map((p, i) => (
                   <tr key={p.id} className={i === 0 ? 'group-start' : undefined}>
                     <td className="num">{i === 0 ? n : ''}</td>
-                    <td className="street">{[p.streetName, p.streetNumber].filter(Boolean).join(' ')}</td>
                     <td>{p.names || '—'}</td>
+                    <td>{p.streetName ?? ''}</td>
+                    <td className="street">{p.streetNumber ?? ''}</td>
                     <td>{p.aptNumber ?? (p.floor ? '' : (p.apartment ?? ''))}</td>
                     <td>{p.floor ?? ''}</td>
                     <td className="coords">
