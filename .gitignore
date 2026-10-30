@@ -7,3 +7,4 @@ public/amplify_outputs.json
 cdk.out/
 *.log
 .DS_Store
+__pycache__/
