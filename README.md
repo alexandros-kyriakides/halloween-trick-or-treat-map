@@ -30,6 +30,18 @@ A one-night neighbourhood map for Saturday 31 October 2026. Neighbours add their
 
 After that, every `git push` to `main` redeploys automatically.
 
+## Admin code (superuser)
+
+Set `SUPER_CODE` in Amplify → Hosting → Environment variables, then **Redeploy this version**. Use at least 12 letters or digits, different from `GROUP_CODE`, for example `GHOST-LANTERN-7Q4K-2026`; the deploy stops if it's too short. Leave it unset to switch the feature off.
+
+On the site: tap any home → **Edit** → type the admin code. From then on:
+- your phone remembers the code, and every home's **Edit** opens directly;
+- a yellow **Admin ✕** button sits in the top bar (tap it to forget the code on that phone);
+- the edit form shows the home's own edit code, to give back to a neighbour who forgot it;
+- **Remove this home** deletes any entry.
+
+The admin code isn't limited by the 5-wrong-codes lockout, which is why it must be long. Neighbours can still remove their own home with their own code (**Edit → Remove my home**).
+
 ## Admin: codes and changes
 
 All entries live in one DynamoDB table: **DynamoDB → Tables → `halloween-map-entries-main` → Explore table items**.

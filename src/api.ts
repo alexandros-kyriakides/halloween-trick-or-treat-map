@@ -10,6 +10,9 @@ export type Pin = {
   names?: string | null;
   buzzer?: string | null;
   notes?: string | null;
+  /** Only from getEntryForEdit, when the superuser code was used. */
+  superuser?: boolean | null;
+  editCode?: string | null;
 };
 
 export type PinList = { groupCodeOk: boolean; closed: boolean; pins: Pin[] };
@@ -121,7 +124,7 @@ export const api = {
     ),
 
   getEntryForEdit: (id: string, editCode: string) =>
-    call<Pin>('getEntryForEdit', `query ($id: ID!, $editCode: String!) { getEntryForEdit(id: $id, editCode: $editCode) { ${PIN} } }`, {
+    call<Pin>('getEntryForEdit', `query ($id: ID!, $editCode: String!) { getEntryForEdit(id: $id, editCode: $editCode) { ${PIN} superuser editCode } }`, {
       id,
       editCode,
     }),

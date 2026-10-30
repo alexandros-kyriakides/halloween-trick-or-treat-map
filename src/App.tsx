@@ -50,7 +50,7 @@ type Sheet =
   | { kind: 'group'; key: string }
   | { kind: 'groupCode'; thenAdd: boolean }
   | { kind: 'form'; mode: 'new'; at: LatLng; fields: Fields }
-  | { kind: 'form'; mode: 'edit'; id: string; code: string; at: LatLng; fields: Fields }
+  | { kind: 'form'; mode: 'edit'; id: string; code: string; at: LatLng; fields: Fields; ownerCode?: string }
   | { kind: 'code'; id: string; code: string }
   | { kind: 'askCode'; id: string; error?: string };
 
@@ -68,6 +68,12 @@ export default function App() {
   const [list, setList] = useState<PinList | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [myCodes, setMyCodes] = useState<Record<string, string>>(() => load('hm.codes', {}));
+  // Superuser (admin) code, remembered on this device after it first works.
+  const [superCode, setSuperCode] = useState<string | null>(() => load('hm.super', null));
+  const rememberSuper = useCallback((code: string | null) => {
+    setSuperCode(code);
+    save('hm.super', code);
+  }, []);
   const [sheet, setSheet] = useState<Sheet | null>(null);
   const [placing, setPlacing] = useState<Placing | null>(null);
   const [sameBuilding, setSameBuilding] = useState(true);
@@ -134,11 +140,23 @@ export default function App() {
   // ---------- editing ----------
 
   const openEdit = useCallback(
-    async (id: string, code: string, fromStorage: boolean) => {
+    async (id: string, code: string, from: 'typed' | 'stored' | 'super') => {
       try {
         const pin = await api.getEntryForEdit(id, code);
-        rememberCode(id, code);
-        setSheet({ kind: 'form', mode: 'edit', id, code, at: { lat: pin.lat, lng: pin.lng }, fields: fromPin(pin) });
+        if (pin.superuser) {
+          rememberSuper(code);
+        } else {
+          rememberCode(id, code);
+        }
+        setSheet({
+          kind: 'form',
+          mode: 'edit',
+          id,
+          code,
+          at: { lat: pin.lat, lng: pin.lng },
+          fields: fromPin(pin),
+          ownerCode: pin.superuser ? (pin.editCode ?? undefined) : undefined,
+        });
       } catch (e) {
         const type = (e as ApiError).type;
         if (type === 'NOT_FOUND') {
@@ -146,15 +164,17 @@ export default function App() {
           setSheet(null);
           showToast(errorText(t, e));
           refresh();
-        } else if (fromStorage && type === 'WRONG_CODE') {
-          rememberCode(id, null);
+        } else if (from !== 'typed' && type === 'WRONG_CODE') {
+          // A remembered code stopped working (changed): forget it and ask.
+          if (from === 'super') rememberSuper(null);
+          else rememberCode(id, null);
           setSheet({ kind: 'askCode', id });
         } else {
           setSheet({ kind: 'askCode', id, error: errorText(t, e) });
         }
       }
     },
-    [rememberCode, refresh, showToast, t],
+    [rememberCode, rememberSuper, refresh, showToast, t],
   );
 
   // Edit links look like  https://site/#edit=<id>&code=<CODE>  (the part after # never reaches a server)
@@ -164,14 +184,15 @@ export default function App() {
     const code = params.get('code');
     if (id && code) {
       history.replaceState(null, '', window.location.pathname + window.location.search);
-      openEdit(id, code, false);
+      openEdit(id, code, 'typed');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const startEdit = (id: string) => {
     const stored = myCodes[id];
-    if (stored) openEdit(id, stored, true);
+    if (stored) openEdit(id, stored, 'stored');
+    else if (superCode) openEdit(id, superCode, 'super');
     else setSheet({ kind: 'askCode', id });
   };
 
@@ -216,7 +237,7 @@ export default function App() {
     if (placing?.edit) {
       const { id, code } = placing.edit;
       setPlacing(null);
-      openEdit(id, code, true);
+      openEdit(id, code, 'stored');
     } else {
       setPlacing(null);
     }
@@ -290,6 +311,11 @@ export default function App() {
           <h1>{t.title}</h1>
           <p>{t.when}</p>
         </div>
+        {superCode && (
+          <button className="admin-chip" onClick={() => rememberSuper(null)} title={t.adminExit}>
+            {t.admin} ✕
+          </button>
+        )}
         <button className="lang" onClick={() => setLang(lang === 'en' ? 'el' : 'en')} aria-label={t.switchLabel}>
           {t.switchTo}
         </button>
@@ -424,7 +450,7 @@ export default function App() {
               }}
             />
           )}
-          {sheet.kind === 'askCode' && <AskCodeSheet t={t} error={sheet.error} onSubmit={(code) => openEdit(sheet.id, code, false)} />}
+          {sheet.kind === 'askCode' && <AskCodeSheet t={t} error={sheet.error} onSubmit={(code) => openEdit(sheet.id, code, 'typed')} />}
           {sheet.kind === 'form' && (
             <FormSheet
               key={sheet.mode === 'edit' ? sheet.id : 'new'}
@@ -664,7 +690,12 @@ function FormSheet(props: {
         attempt(() => props.onSave(f));
       }}
     >
-      <h2>{sheet.mode === 'new' ? t.formNew : t.formEdit}</h2>
+      <h2>{sheet.mode === 'new' ? t.formNew : sheet.ownerCode ? t.formEditAdmin : t.formEdit}</h2>
+      {sheet.mode === 'edit' && sheet.ownerCode && (
+        <p className="admin-note">
+          {t.adminOwnerCode} <strong className="owner-code">{sheet.ownerCode}</strong>
+        </p>
+      )}
       {field('names', t.names, t.namesHint)}
       {field('apartment', t.apartment, t.apartmentHint)}
       {field('buzzer', t.buzzer, t.buzzerHint)}
@@ -685,13 +716,13 @@ function FormSheet(props: {
             {t.movePin}
           </button>
           <button type="button" className="btn btn-danger" disabled={busy} onClick={() => setConfirmingRemove(true)}>
-            {t.remove}
+            {sheet.ownerCode ? t.removeAdmin : t.remove}
           </button>
         </div>
       )}
       {sheet.mode === 'edit' && confirmingRemove && (
         <div className="confirm" role="alertdialog" aria-label={t.removeConfirm}>
-          <p>{t.removeConfirm}</p>
+          <p>{sheet.ownerCode ? t.removeConfirmAdmin : t.removeConfirm}</p>
           <div className="row">
             <button type="button" className="btn" disabled={busy} onClick={() => setConfirmingRemove(false)}>
               {t.cancel}
