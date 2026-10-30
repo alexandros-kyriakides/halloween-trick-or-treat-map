@@ -1,9 +1,11 @@
 # Security headers for every page served by Amplify Hosting.
+# script/img/connect/frame/worker sources for Google Maps follow Google's allowlist CSP:
+# https://developers.google.com/maps/documentation/javascript/content-security-policy
 customHeaders:
   - pattern: '**'
     headers:
       - key: Content-Security-Policy
-        value: "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://server.arcgisonline.com; connect-src 'self' https://*.amazonaws.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+        value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.googleapis.com https://*.gstatic.com *.google.com https://*.ggpht.com *.googleusercontent.com blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://server.arcgisonline.com https://*.googleapis.com https://*.gstatic.com *.google.com *.googleusercontent.com; connect-src 'self' https://*.amazonaws.com https://*.googleapis.com *.google.com https://*.gstatic.com data: blob:; frame-src *.google.com; worker-src blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
       - key: X-Robots-Tag
         value: noindex, nofollow
       # Not no-referrer: OpenStreetMap's tile policy requires a Referer and may block tiles

@@ -4,6 +4,8 @@ import 'leaflet/dist/leaflet.css';
 import { BOUNDS, SATELLITE_ATTRIBUTION, SATELLITE_TILES, STREET_LABEL_TILES, STREET_MAP_ATTRIBUTION, STREET_MAP_TILES } from './config';
 
 export type BaseLayer = 'satellite' | 'map';
+/** What App needs from either map implementation (Google or Leaflet). */
+export type MapHandle = { focus: (p: { lat: number; lng: number }, minZoom: number) => void };
 import type { LatLng, PinGroup } from './geo';
 
 type Props = {
@@ -16,7 +18,7 @@ type Props = {
   onGroupTap: (g: PinGroup) => void;
   onMapTap: (p: LatLng) => void;
   onDraftMove: (p: LatLng) => void;
-  mapRef?: React.MutableRefObject<L.Map | null>;
+  mapRef?: React.MutableRefObject<MapHandle | null>;
 };
 
 const area = L.latLngBounds([BOUNDS.south, BOUNDS.west], [BOUNDS.north, BOUNDS.east]);
@@ -71,7 +73,7 @@ export function MapView(props: Props) {
     };
     bases.current[props.baseLayer].addTo(m);
 
-    // Plum-tinted mask over everything outside the 2 km box, plus a dashed edge.
+    // Plum-tinted mask over everything outside the 1.5 km box, plus a dashed edge.
     const world: L.LatLngTuple[] = [[-89, -179], [-89, 179], [89, 179], [89, -179]];
     const hole: L.LatLngTuple[] = [
       [BOUNDS.south, BOUNDS.west],
@@ -94,7 +96,9 @@ export function MapView(props: Props) {
 
     markers.current = L.layerGroup().addTo(m);
     map.current = m;
-    if (props.mapRef) props.mapRef.current = m;
+    if (props.mapRef) {
+      props.mapRef.current = { focus: (p, minZoom) => m.setView([p.lat, p.lng], Math.max(m.getZoom(), minZoom)) };
+    }
     return () => {
       m.remove();
       map.current = null;

@@ -1,10 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type L from 'leaflet';
 import { api, ApiError, type EntryFields, type Pin, type PinList } from './api';
 import { LIMITS, REFRESH_MS } from './config';
 import { groupPins, insideArea, nearestGroup, type LatLng, type PinGroup } from './geo';
 import { dict, errorText, type Lang, type T } from './i18n';
-import { MapView, type BaseLayer } from './MapView';
+import { MapView, type BaseLayer, type MapHandle } from './MapView';
+import { GoogleMapView } from './GoogleMapView';
+
+// Set in Amplify (Hosting -> Environment variables -> VITE_GOOGLE_MAPS_API_KEY). Without it, or if
+// Google rejects the key, the site uses the Esri/Leaflet maps instead.
+const GOOGLE_MAPS_KEY = (import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined)?.trim() ?? '';
 
 // ---------- small persistence helpers (browser storage can be unavailable; never fatal) ----------
 
@@ -73,7 +77,8 @@ export default function App() {
   const [tracking, setTracking] = useState(false);
   const [baseLayer, setBaseLayer] = useState<BaseLayer>(() => load<BaseLayer>('hm.base', 'satellite'));
   useEffect(() => save('hm.base', baseLayer), [baseLayer]);
-  const mapRef = useRef<L.Map | null>(null);
+  const mapRef = useRef<MapHandle | null>(null);
+  const [googleFailed, setGoogleFailed] = useState(false);
 
   useEffect(() => {
     document.documentElement.lang = lang;
@@ -235,7 +240,7 @@ export default function App() {
           const p = onFix(pos);
           if (!insideArea(p)) return showToast(t.locationOutside);
           setPlacing((cur) => (cur ? { ...cur, draft: p } : cur));
-          mapRef.current?.setView([p.lat, p.lng], Math.max(mapRef.current.getZoom(), 18));
+          mapRef.current?.focus(p, 18);
         },
         () => showToast(t.locationOff),
         { enableHighAccuracy: true, timeout: 15000 },
@@ -256,7 +261,7 @@ export default function App() {
         const p = onFix(pos);
         if (first) {
           first = false;
-          if (insideArea(p)) mapRef.current?.setView([p.lat, p.lng], Math.max(mapRef.current.getZoom(), 17));
+          if (insideArea(p)) mapRef.current?.focus(p, 17);
           else showToast(t.locationOutside);
         }
       },
@@ -309,18 +314,33 @@ export default function App() {
           </button>
         </div>
 
-        <MapView
-          baseLayer={baseLayer}
-          groups={closed ? [] : groups}
-          selectedKey={selectedGroup?.key ?? null}
-          draft={placing?.draft ?? null}
-          userPos={userPos}
-          placing={!!placing}
-          onGroupTap={(g) => setSheet({ kind: 'group', key: g.key })}
-          onMapTap={onMapTap}
-          onDraftMove={(p) => (insideArea(p) ? setPlacing((c) => (c ? { ...c, draft: p } : c)) : showToast(t.placeOutside))}
-          mapRef={mapRef}
-        />
+        {(() => {
+          const mapProps = {
+            baseLayer,
+            groups: closed ? [] : groups,
+            selectedKey: selectedGroup?.key ?? null,
+            draft: placing?.draft ?? null,
+            userPos,
+            placing: !!placing,
+            onGroupTap: (g: PinGroup) => setSheet({ kind: 'group', key: g.key }),
+            onMapTap,
+            onDraftMove: (p: LatLng) =>
+              insideArea(p) ? setPlacing((c) => (c ? { ...c, draft: p } : c)) : showToast(t.placeOutside),
+            mapRef,
+          };
+          // The map language is fixed when Google loads, so a language switch remounts it.
+          return GOOGLE_MAPS_KEY && !googleFailed ? (
+            <GoogleMapView
+              key={`google-${lang}`}
+              apiKey={GOOGLE_MAPS_KEY}
+              language={lang}
+              onFail={() => setGoogleFailed(true)}
+              {...mapProps}
+            />
+          ) : (
+            <MapView {...mapProps} />
+          );
+        })()}
 
         {closed && <div className="notice notice-closed">{t.closed}</div>}
         {loadError && !list && (

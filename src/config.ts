@@ -1,12 +1,12 @@
-// Map area: a 2 km x 2 km box centred on Michalis Tourapis Park, Nicosia.
-// North/south/east/west are 1 km geodesic offsets from the centre (WGS84).
+// Map area: a 1.5 km x 1.5 km box centred on Michalis Tourapis Park, Nicosia.
+// North/south/east/west are 750 m geodesic offsets from the centre (WGS84).
 // Keep in sync with the bounds in amplify/data/resolvers/{createEntry,updateEntry}.js.
 export const CENTER: [number, number] = [35.0757663, 33.313154];
 export const BOUNDS = {
-  south: 35.0667526,
-  north: 35.08478,
-  west: 33.3021896,
-  east: 33.3241184,
+  south: 35.069006,
+  north: 35.0825266,
+  west: 33.3049307,
+  east: 33.3213773,
 };
 
 /** Entries closer than this are shown as one pin (an apartment building, or a house with two families). */

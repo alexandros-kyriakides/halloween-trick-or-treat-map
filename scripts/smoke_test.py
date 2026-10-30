@@ -19,7 +19,7 @@ import urllib.error
 import urllib.request
 
 CENTER = (35.0757663, 33.313154)
-# A spot ~400 m south-east of the centre, inside the 2 km box.
+# A spot ~400 m south-east of the centre, inside the 1.5 km box.
 TEST_POINT = (35.0722, 33.3170)
 OUTSIDE_POINT = (35.0900, 33.3131)  # ~1.6 km north of the centre: outside the box
 MARK = 'SMOKE TEST - please ignore'
@@ -124,7 +124,7 @@ def main():
     check('wrong group code: create rejected', err and err[0] == 'BAD_GROUP_CODE', err)
 
     _, err = api.call(CREATE, {'g': group, 'lat': OUTSIDE_POINT[0], 'lng': OUTSIDE_POINT[1], 'names': MARK})
-    check('outside the 2 km box: rejected', err and err[0] == 'OUTSIDE_AREA', err)
+    check('outside the 1.5 km box: rejected', err and err[0] == 'OUTSIDE_AREA', err)
 
     made = {}
     for label, apt in (('A', 'A-101'), ('B', 'B-202'), ('C', 'C-lockout')):

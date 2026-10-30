@@ -269,3 +269,17 @@ test('edit codes come from util.autoId, not Math.random, and cover the code spac
     Math.random = realRandom;
   }
 });
+
+test('area is 1.5 km x 1.5 km: 700 m from the centre is accepted, 800 m is rejected', async () => {
+  const dLat700 = 700 / 111_000; // ~0.0063 degrees of latitude
+  const dLat800 = 800 / 111_000;
+  await add({ lat: CENTER.lat + dLat700 });
+  await add({ lat: CENTER.lat - dLat700 });
+  await rejects(add({ lat: CENTER.lat + dLat800 }), 'OUTSIDE_AREA');
+  await rejects(add({ lat: CENTER.lat - dLat800 }), 'OUTSIDE_AREA');
+  const dLng700 = 700 / (111_000 * Math.cos((CENTER.lat * Math.PI) / 180));
+  const dLng800 = 800 / (111_000 * Math.cos((CENTER.lat * Math.PI) / 180));
+  await add({ lng: CENTER.lng + dLng700 });
+  await rejects(add({ lng: CENTER.lng + dLng800 }), 'OUTSIDE_AREA');
+  await rejects(add({ lng: CENTER.lng - dLng800 }), 'OUTSIDE_AREA');
+});
