@@ -102,6 +102,7 @@ export function PrintView(props: {
     [useEsri, props.baseLayer, props.googleKey, props.lang],
   );
   const numbered = useMemo(() => numberGroups(props.groups), [props.groups]);
+  const hasNotes = props.groups.some((g) => g.pins.some((p) => p.notes));
   const box = { a: project(view, BOUNDS.north, BOUNDS.west), b: project(view, BOUNDS.south, BOUNDS.east) };
   const printedAt = new Date().toLocaleString(props.lang === 'el' ? 'el-GR' : 'en-GB', {
     day: 'numeric',
@@ -224,27 +225,34 @@ export function PrintView(props: {
         {numbered.length === 0 ? (
           <p>{t.emptyMap}</p>
         ) : (
-          <ol className="print-list">
-            {numbered.map(({ n, g }) => (
-              <li key={g.key} value={n}>
-                {g.pins.map((p) => (
-                  <div key={p.id} className="print-entry">
-                    <strong>{p.names || '🎃'}</strong>
-                    {(p.aptNumber || p.floor) && (
-                      <span>
-                        {' '}
-                        · {p.aptNumber ? `${t.aptShort} ${p.aptNumber}` : ''}
-                        {p.aptNumber && p.floor ? ', ' : ''}
-                        {p.floor ? `${t.floorShort} ${p.floor}` : ''}
-                      </span>
-                    )}
-                    {!p.aptNumber && !p.floor && p.apartment && <span> · {p.apartment}</span>}
-                    {p.notes && <span className="print-notes"> · {p.notes}</span>}
-                  </div>
-                ))}
-              </li>
-            ))}
-          </ol>
+          <table className="print-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>{t.names}</th>
+                <th>{t.aptShort}</th>
+                <th>{t.floor}</th>
+                <th>{t.printLatLng}</th>
+                {hasNotes && <th>{t.notes}</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {numbered.flatMap(({ n, g }) =>
+                g.pins.map((p, i) => (
+                  <tr key={p.id} className={i === 0 ? 'group-start' : undefined}>
+                    <td className="num">{i === 0 ? n : ''}</td>
+                    <td>{p.names || '—'}</td>
+                    <td>{p.aptNumber ?? (p.floor ? '' : (p.apartment ?? ''))}</td>
+                    <td>{p.floor ?? ''}</td>
+                    <td className="coords">
+                      {p.lat.toFixed(6)}, {p.lng.toFixed(6)}
+                    </td>
+                    {hasNotes && <td className="print-notes">{p.notes ?? ''}</td>}
+                  </tr>
+                )),
+              )}
+            </tbody>
+          </table>
         )}
       </div>
     </div>

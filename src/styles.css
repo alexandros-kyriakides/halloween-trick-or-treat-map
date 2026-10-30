@@ -892,3 +892,52 @@ textarea.input {
     print-color-adjust: exact;
   }
 }
+
+/* ---------- print table ---------- */
+
+.print-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.print-table th,
+.print-table td {
+  padding: 4px 6px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid #ddd;
+}
+
+.print-table th {
+  border-bottom: 2px solid var(--plum);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.print-table tr.group-start td {
+  border-top: 1px solid #aaa;
+}
+
+.print-table .num {
+  width: 2em;
+  font-weight: 800;
+  color: var(--plum);
+}
+
+.print-table .coords {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+@media print {
+  .print-table {
+    font-size: 9pt;
+  }
+  .print-table thead {
+    display: table-header-group;
+  }
+  .print-table tr {
+    break-inside: avoid;
+  }
+}
