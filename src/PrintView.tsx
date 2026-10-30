@@ -12,7 +12,7 @@ import { detectPlatform } from './locationHelp';
 type Tile = { url: string; x: number; y: number; w: number; h: number };
 type View = { tiles: Tile[]; west: number; east: number; north: number; south: number; w: number; h: number };
 
-const SIZE = 880; // CSS pixels of the whole map; images are requested at 2x for sharp printing
+const SIZE = 880; // CSS pixels of the Esri map; images are requested at 2x for sharp printing
 
 function mercY(lat: number) {
   const r = (lat * Math.PI) / 180;
@@ -23,10 +23,11 @@ function latFromMercY(y: number) {
 }
 
 function googleView(key: string, base: BaseLayer, lang: string): View {
-  // Google returns at most 640 px per image, so the map is 2 x 2 images at zoom 16
-  // (each 440 px), together 880 px, which fits the 1.5 km box (~770 px) with a margin.
-  const zoom = 16;
-  const half = SIZE / 2;
+  // One image, no stitching: 640 x 640 is the largest Google serves (1280 px at scale 2).
+  // At zoom 15 the 1.5 km box is ~384 px of it, with the surroundings around it.
+  const zoom = 15;
+  const size = 640;
+  const half = size / 2;
   const worldPx = 256 * 2 ** zoom;
   const degPerPx = 360 / worldPx;
   const radPerPx = (2 * Math.PI) / worldPx;
@@ -35,32 +36,18 @@ function googleView(key: string, base: BaseLayer, lang: string): View {
   const east = CENTER[1] + half * degPerPx;
   const north = latFromMercY(cy + half * radPerPx);
   const south = latFromMercY(cy - half * radPerPx);
-  const tiles: Tile[] = [];
-  for (const [col, row] of [
-    [0, 0],
-    [1, 0],
-    [0, 1],
-    [1, 1],
-  ]) {
-    // Centre of this quarter, in pixels from the map centre.
-    const dx = (col - 0.5) * half;
-    const dy = (row - 0.5) * half;
-    const lat = latFromMercY(cy - dy * radPerPx);
-    const lng = CENTER[1] + dx * degPerPx;
-    const url =
-      'https://maps.googleapis.com/maps/api/staticmap?' +
-      new URLSearchParams({
-        center: `${lat.toFixed(7)},${lng.toFixed(7)}`,
-        zoom: String(zoom),
-        size: `${half}x${half}`,
-        scale: '2',
-        maptype: base === 'satellite' ? 'hybrid' : 'roadmap',
-        language: lang,
-        key,
-      }).toString();
-    tiles.push({ url, x: col * half, y: row * half, w: half, h: half });
-  }
-  return { tiles, west, east, north, south, w: SIZE, h: SIZE };
+  const url =
+    'https://maps.googleapis.com/maps/api/staticmap?' +
+    new URLSearchParams({
+      center: `${CENTER[0]},${CENTER[1]}`,
+      zoom: String(zoom),
+      size: `${size}x${size}`,
+      scale: '2',
+      maptype: base === 'satellite' ? 'hybrid' : 'roadmap',
+      language: lang,
+      key,
+    }).toString();
+  return { tiles: [{ url, x: 0, y: 0, w: size, h: size }], west, east, north, south, w: size, h: size };
 }
 
 function esriView(base: BaseLayer): View {
