@@ -5,6 +5,7 @@ import { groupPins, insideArea, nearestGroup, type LatLng, type PinGroup } from 
 import { dict, errorText, type Lang, type T } from './i18n';
 import { MapView, type BaseLayer, type MapHandle } from './MapView';
 import { locationSteps } from './locationHelp';
+import { PrintView } from './PrintView';
 import { GoogleMapView } from './GoogleMapView';
 
 // Set in Amplify (Hosting -> Environment variables -> VITE_GOOGLE_MAPS_API_KEY). Without it, or if
@@ -94,6 +95,7 @@ export default function App() {
   useEffect(() => save('hm.base', baseLayer), [baseLayer]);
   const mapRef = useRef<MapHandle | null>(null);
   const [googleFailed, setGoogleFailed] = useState(false);
+  const [printing, setPrinting] = useState(false);
 
   useEffect(() => {
     document.documentElement.lang = lang;
@@ -331,6 +333,11 @@ export default function App() {
             {t.admin} ✕
           </button>
         )}
+        {unlocked && !closed && (
+          <button className="lang print-btn" onClick={() => setPrinting(true)} aria-label={t.printTitle} title={t.printTitle}>
+            <PrintIcon />
+          </button>
+        )}
         <button className="lang" onClick={() => setLang(lang === 'en' ? 'el' : 'en')} aria-label={t.switchLabel}>
           {t.switchTo}
         </button>
@@ -435,6 +442,18 @@ export default function App() {
           </div>
         )}
       </main>
+
+      {printing && (
+        <PrintView
+          t={t}
+          lang={lang}
+          groups={groups}
+          baseLayer={baseLayer}
+          googleKey={GOOGLE_MAPS_KEY && !googleFailed ? GOOGLE_MAPS_KEY : ''}
+          onClose={() => setPrinting(false)}
+          showToast={showToast}
+        />
+      )}
 
       {toast && (
         <div className="toast" role="status">
@@ -882,6 +901,16 @@ function LocateIcon() {
       <circle cx="12" cy="12" r="4" fill="currentColor" />
       <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" strokeWidth="2" />
       <path d="M12 1v4M12 19v4M1 12h4M19 12h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function PrintIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+      <path d="M7 8V3h10v5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+      <rect x="3" y="8" width="18" height="9" rx="2" fill="none" stroke="currentColor" strokeWidth="2" />
+      <path d="M7 14h10v7H7z" fill="currentColor" />
     </svg>
   );
 }

@@ -68,6 +68,7 @@ The map uses Google Maps when the Amplify environment variable `VITE_GOOGLE_MAPS
 3. **APIs & Services → Credentials → Create credentials → API key**, then edit the key:
    - **Application restrictions:** Websites → add `https://main.<app-id>.amplifyapp.com/*`
    - **API restrictions:** Restrict key → only **Maps JavaScript API**
+   - For the **Print** page's map image, also enable **Maps Static API** (APIs & Services → Library) and tick it in the key's API restrictions. Without it, the print page uses an Esri image instead.
 4. Amplify → Hosting → Environment variables → add `VITE_GOOGLE_MAPS_API_KEY` = the key → **Redeploy this version**.
 
 The key ends up inside the web page (every Google Maps site works this way). The website restriction is what stops others from using it.
