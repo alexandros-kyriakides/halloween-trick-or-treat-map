@@ -9,9 +9,10 @@ import { detectPlatform } from './locationHelp';
 // list of the homes. The map image comes from Google's Maps Static API when a Google key is
 // set (it must have "Maps Static API" enabled), otherwise, or if that fails, from Esri.
 
-type View = { url: string; west: number; east: number; north: number; south: number; w: number; h: number };
+type Tile = { url: string; x: number; y: number; w: number; h: number };
+type View = { tiles: Tile[]; west: number; east: number; north: number; south: number; w: number; h: number };
 
-const SIZE = 440; // CSS pixels; images are requested at 2x for sharp printing
+const SIZE = 880; // CSS pixels of the whole map; images are requested at 2x for sharp printing
 
 function mercY(lat: number) {
   const r = (lat * Math.PI) / 180;
@@ -22,28 +23,44 @@ function latFromMercY(y: number) {
 }
 
 function googleView(key: string, base: BaseLayer, lang: string): View {
-  // Zoom 15 fits the 1.5 km box (~384 px) inside 440 px at this latitude.
-  const zoom = 15;
+  // Google returns at most 640 px per image, so the map is 2 x 2 images at zoom 16
+  // (each 440 px), together 880 px, which fits the 1.5 km box (~770 px) with a margin.
+  const zoom = 16;
+  const half = SIZE / 2;
   const worldPx = 256 * 2 ** zoom;
   const degPerPx = 360 / worldPx;
-  const west = CENTER[1] - (SIZE / 2) * degPerPx;
-  const east = CENTER[1] + (SIZE / 2) * degPerPx;
   const radPerPx = (2 * Math.PI) / worldPx;
   const cy = mercY(CENTER[0]);
-  const north = latFromMercY(cy + (SIZE / 2) * radPerPx);
-  const south = latFromMercY(cy - (SIZE / 2) * radPerPx);
-  const url =
-    'https://maps.googleapis.com/maps/api/staticmap?' +
-    new URLSearchParams({
-      center: `${CENTER[0]},${CENTER[1]}`,
-      zoom: String(zoom),
-      size: `${SIZE}x${SIZE}`,
-      scale: '2',
-      maptype: base === 'satellite' ? 'hybrid' : 'roadmap',
-      language: lang,
-      key,
-    }).toString();
-  return { url, west, east, north, south, w: SIZE, h: SIZE };
+  const west = CENTER[1] - half * degPerPx;
+  const east = CENTER[1] + half * degPerPx;
+  const north = latFromMercY(cy + half * radPerPx);
+  const south = latFromMercY(cy - half * radPerPx);
+  const tiles: Tile[] = [];
+  for (const [col, row] of [
+    [0, 0],
+    [1, 0],
+    [0, 1],
+    [1, 1],
+  ]) {
+    // Centre of this quarter, in pixels from the map centre.
+    const dx = (col - 0.5) * half;
+    const dy = (row - 0.5) * half;
+    const lat = latFromMercY(cy - dy * radPerPx);
+    const lng = CENTER[1] + dx * degPerPx;
+    const url =
+      'https://maps.googleapis.com/maps/api/staticmap?' +
+      new URLSearchParams({
+        center: `${lat.toFixed(7)},${lng.toFixed(7)}`,
+        zoom: String(zoom),
+        size: `${half}x${half}`,
+        scale: '2',
+        maptype: base === 'satellite' ? 'hybrid' : 'roadmap',
+        language: lang,
+        key,
+      }).toString();
+    tiles.push({ url, x: col * half, y: row * half, w: half, h: half });
+  }
+  return { tiles, west, east, north, south, w: SIZE, h: SIZE };
 }
 
 function esriView(base: BaseLayer): View {
@@ -65,7 +82,7 @@ function esriView(base: BaseLayer): View {
       format: 'jpg',
       f: 'image',
     }).toString();
-  return { url, ...v, w, h };
+  return { tiles: [{ url, x: 0, y: 0, w, h }], ...v, w, h };
 }
 
 function project(v: View, lat: number, lng: number) {
@@ -110,30 +127,35 @@ export function PrintView(props: {
     // Draw the map and the numbered markers into one picture. This needs the map server to
     // allow it (CORS); if it doesn't, suggest a screenshot instead.
     try {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.src = view.url;
-      await img.decode();
+      const images = await Promise.all(
+        view.tiles.map(async (tile) => {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.src = tile.url;
+          await img.decode();
+          return { img, tile };
+        }),
+      );
       const s = 2;
       const canvas = document.createElement('canvas');
       canvas.width = view.w * s;
       canvas.height = view.h * s;
       const c = canvas.getContext('2d')!;
-      c.drawImage(img, 0, 0, canvas.width, canvas.height);
+      for (const { img, tile } of images) c.drawImage(img, tile.x * s, tile.y * s, tile.w * s, tile.h * s);
       c.strokeStyle = '#FF8A1F';
       c.lineWidth = 3 * s;
       c.strokeRect(box.a.x * s, box.a.y * s, (box.b.x - box.a.x) * s, (box.b.y - box.a.y) * s);
       for (const { n, g } of numbered) {
         const p = project(view, g.lat, g.lng);
         c.beginPath();
-        c.arc(p.x * s, p.y * s, 10 * s, 0, Math.PI * 2);
+        c.arc(p.x * s, p.y * s, 13 * s, 0, Math.PI * 2);
         c.fillStyle = '#FF8A1F';
         c.fill();
         c.lineWidth = 2 * s;
         c.strokeStyle = '#3B1F4A';
         c.stroke();
         c.fillStyle = '#3B1F4A';
-        c.font = `bold ${11 * s}px Arial`;
+        c.font = `bold ${14 * s}px Arial`;
         c.textAlign = 'center';
         c.textBaseline = 'middle';
         c.fillText(String(n), p.x * s, p.y * s + s);
@@ -176,15 +198,22 @@ export function PrintView(props: {
         </p>
 
         <div className="print-map" style={{ maxWidth: view.w, aspectRatio: `${view.w} / ${view.h}` }}>
-          <img
-            src={view.url}
-            alt=""
-            width={view.w}
-            height={view.h}
-            onError={() => {
-              if (!useEsri) setUseEsri(true); // e.g. Maps Static API not enabled for the key
-            }}
-          />
+          {view.tiles.map((tile) => (
+            <img
+              key={tile.url}
+              src={tile.url}
+              alt=""
+              style={{
+                left: pct(tile.x, view.w),
+                top: pct(tile.y, view.h),
+                width: pct(tile.w, view.w),
+                height: pct(tile.h, view.h),
+              }}
+              onError={() => {
+                if (!useEsri) setUseEsri(true); // e.g. Maps Static API not enabled for the key
+              }}
+            />
+          ))}
           <div
             className="print-box"
             style={{
