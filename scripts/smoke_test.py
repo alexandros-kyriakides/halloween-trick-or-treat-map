@@ -62,10 +62,10 @@ class Api:
 PIN = 'id lat lng apartment names buzzer notes'
 LIST = 'query ($g: String) { listPins(groupCode: $g) { groupCodeOk closed pins { %s } } }' % PIN
 CREATE = ('mutation ($g: String!, $lat: Float!, $lng: Float!, $names: String, $apartment: String) {'
-          ' createEntry(groupCode: $g, consent: true, lat: $lat, lng: $lng, names: $names, apartment: $apartment) { id editCode } }')
+          ' createEntry(groupCode: $g, consent: true, lat: $lat, lng: $lng, names: $names, apartment: $apartment, streetNumber: "1") { id editCode } }')
 GET = 'query ($id: ID!, $c: String!) { getEntryForEdit(id: $id, editCode: $c) { %s } }' % PIN
 UPDATE = ('mutation ($id: ID!, $c: String!, $lat: Float!, $lng: Float!, $names: String, $apartment: String, $notes: String) {'
-          ' updateEntry(id: $id, editCode: $c, lat: $lat, lng: $lng, names: $names, apartment: $apartment, notes: $notes) { %s } }' % PIN)
+          ' updateEntry(id: $id, editCode: $c, lat: $lat, lng: $lng, names: $names, apartment: $apartment, notes: $notes, streetNumber: "1") { %s } }' % PIN)
 DELETE = 'mutation ($id: ID!, $c: String!) { deleteEntry(id: $id, editCode: $c) }'
 
 

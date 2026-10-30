@@ -941,3 +941,8 @@ textarea.input {
     break-inside: avoid;
   }
 }
+
+.print-table .street {
+  font-weight: 700;
+  white-space: nowrap;
+}

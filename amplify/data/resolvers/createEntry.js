@@ -10,7 +10,7 @@ const EAST = 33.3213773;
 
 // apartment and buzzer are kept for entries saved before 30 Oct; the form now sends
 // aptNumber + floor (apartments only) and no bell field.
-const LIMITS = { apartment: 40, names: 60, buzzer: 40, notes: 200, aptNumber: 20, floor: 10 };
+const LIMITS = { apartment: 40, names: 60, buzzer: 40, notes: 200, aptNumber: 20, floor: 10, streetNumber: 10 };
 
 // Simple, friendly words that are easy to spell. 100 words x 1000 numbers = 100,000 codes.
 const WORDS = [
@@ -91,6 +91,10 @@ export function request(ctx) {
     util.error('Please accept the consent statement.', 'CONSENT_REQUIRED');
   }
   checkLocation(args.lat, args.lng);
+  // Street number is required for every home (the map alone doesn't say which house it is).
+  if (cleanText(args.streetNumber, 'streetNumber') === null) {
+    util.error('Please enter the street number.', 'STREET_NUMBER_REQUIRED');
+  }
 
   const id = util.autoId();
   const now = util.time.nowISO8601();
