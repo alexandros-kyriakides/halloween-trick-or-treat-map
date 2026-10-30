@@ -32,7 +32,7 @@ After that, every `git push` to `main` redeploys automatically.
 
 ## Admin code (superuser)
 
-Set `SUPER_CODE` in Amplify → Hosting → Environment variables, then **Redeploy this version**. Use at least 12 letters or digits, different from `GROUP_CODE`, for example `GHOST-LANTERN-7Q4K-2026`; the deploy stops if it's too short. Leave it unset to switch the feature off.
+Set `SUPER_CODE` in Amplify → Hosting → Environment variables, then **Redeploy this version**. Use at least 10 letters or digits, different from `GROUP_CODE`, for example `GHOST-LANTERN-7Q4K-2026`; the deploy stops if it's too short. Leave it unset to switch the feature off.
 
 On the site: tap any home → **Edit** → type the admin code. From then on:
 - your phone remembers the code, and every home's **Edit** opens directly;

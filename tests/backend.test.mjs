@@ -322,7 +322,7 @@ test('superuser code works on a locked entry and does not count attempts', async
   await api.call('getEntryForEdit', { id: a.id, editCode: a.editCode }); // owner can get in again
 });
 
-test('superuser code is off when SUPER_CODE is unset or shorter than 12', async () => {
+test('superuser code is off when SUPER_CODE is unset or shorter than 10', async () => {
   const a = await add();
   await rejects(api.call('getEntryForEdit', { id: a.id, editCode: SUPER }), 'WRONG_CODE');
   api = createSimBackend({ env: { ...ENV, SUPER_CODE: 'SHORT-1' } });
@@ -335,4 +335,14 @@ test('a near-miss superuser code counts as a normal wrong attempt', async () => 
   const a = await add();
   await assert.rejects(api.call('deleteEntry', { id: a.id, editCode: SUPER + 'X' }), (e) => e.errorInfo.triesLeft === 4);
   assert.equal(api.table.has(a.id), true);
+});
+
+test('superuser code of exactly 10 letters/digits works; 9 does not', async () => {
+  api = createSimBackend({ env: { ...ENV, SUPER_CODE: 'ABCDE-12345' } }); // 10 after removing the dash
+  const a = await add();
+  const pin = await api.call('getEntryForEdit', { id: a.id, editCode: 'abcde12345' });
+  assert.equal(pin.superuser, true);
+  api = createSimBackend({ env: { ...ENV, SUPER_CODE: 'ABCD-12345' } }); // 9
+  const b = await add();
+  await rejects(api.call('getEntryForEdit', { id: b.id, editCode: 'ABCD-12345' }), 'WRONG_CODE');
 });

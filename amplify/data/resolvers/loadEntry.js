@@ -1,5 +1,5 @@
 // Step 1 of every edit-code operation: load the entry and refuse if it is locked.
-// The superuser code (SUPER_CODE, optional, at least 12 characters, set in Amplify) works on
+// The superuser code (SUPER_CODE, optional, at least 10 characters, set in Amplify) works on
 // every entry and is not subject to the per-entry lockout, so the admin can always get in.
 // AppSync JS runtime: no throw/try, no regex, no ++/--, no classic for loops.
 import { util } from '@aws-appsync/utils';
@@ -35,7 +35,7 @@ export function response(ctx) {
     util.error('This entry no longer exists.', 'NOT_FOUND');
   }
   const superCode = norm(ctx.env.SUPER_CODE ?? '');
-  if (superCode.length >= 12 && norm(ctx.args.editCode) === superCode) {
+  if (superCode.length >= 10 && norm(ctx.args.editCode) === superCode) {
     ctx.stash.entry = entry;
     ctx.stash.superuser = true;
     return entry;
