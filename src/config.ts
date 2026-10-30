@@ -16,16 +16,18 @@ export const GROUP_RADIUS_M = 15;
 export const REFRESH_MS = 2 * 60 * 1000;
 
 // OpenStreetMap does not have the individual houses of this neighbourhood mapped, so the map
-// opens on satellite imagery (houses visible) with street names on top. "Map" switches to OSM.
-export const OSM_TILES = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+// opens on satellite imagery (houses visible) with street names on top. OSM also lacks most
+// street names here, so "Map" uses Esri's World Street Map (commercial road data) instead.
+export const STREET_MAP_TILES =
+  'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}';
+export const STREET_MAP_ATTRIBUTION =
+  'Map &copy; Esri, HERE, Garmin, USGS, NGA, and the GIS User Community';
 export const SATELLITE_TILES =
   'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
 export const STREET_LABEL_TILES =
   'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}';
 export const SATELLITE_ATTRIBUTION =
   'Imagery &copy; Esri, Maxar, Earthstar Geographics, and the GIS User Community';
-export const OSM_ATTRIBUTION =
-  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
 /** Must match the resolver limits in amplify/data/resolvers. */
 export const LIMITS = { apartment: 40, names: 60, buzzer: 40, notes: 200 } as const;
