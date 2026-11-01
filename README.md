@@ -11,6 +11,8 @@ A one-night neighbourhood map for Saturday 31 October 2026. Neighbours add their
 
 How this site was built with ChatGPT and Claude, step by step: [docs/HOW-IT-WAS-BUILT.md](docs/HOW-IT-WAS-BUILT.md).
 
+Running it again next year (code, AWS and Google Cloud steps): [docs/DEPLOY-AGAIN.md](docs/DEPLOY-AGAIN.md).
+
 ## Deploy (about 15 minutes)
 
 1. Create an empty **private** repository on GitHub, e.g. `halloween-map`.
