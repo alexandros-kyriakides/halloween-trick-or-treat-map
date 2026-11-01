@@ -9,6 +9,8 @@ A one-night neighbourhood map for Saturday 31 October 2026. Neighbours add their
 - At **1 Nov 02:00** (Nicosia) the map empties and stops accepting changes. Entries are deleted automatically from **8 Nov**.
 - English and Greek, switchable in the top bar.
 
+How this site was built with ChatGPT and Claude, step by step: [docs/HOW-IT-WAS-BUILT.md](docs/HOW-IT-WAS-BUILT.md).
+
 ## Deploy (about 15 minutes)
 
 1. Create an empty **private** repository on GitHub, e.g. `halloween-map`.
