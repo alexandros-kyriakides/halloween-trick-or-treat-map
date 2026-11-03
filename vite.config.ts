@@ -18,6 +18,8 @@ export default defineConfig({
       transformIndexHtml: (html) => html.replaceAll('%SITE_URL%', siteUrl),
     },
   ],
+  // DEMO=true (set on the demo branch in Amplify) shows the demo banner; it is not a secret.
+  envPrefix: ['VITE_', 'DEMO'],
   resolve: {
     // Only used by demo mode, which runs the real resolvers in the browser.
     alias: {

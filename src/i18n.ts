@@ -82,6 +82,8 @@ const en = {
   notesHint: 'e.g. side gate, ring twice',
   consent:
     'I agree that this location will be visible to anyone with the link, and the details above to anyone with the group code. Everything is deleted automatically from 8 November 2026.',
+  demoBanner: "Demo site: try it out, but don't enter real names or addresses. Group code: DEMO",
+  demoConsent: 'I understand this is a demo: what I enter is visible to anyone with the link and the group code.',
   addToMap: 'Add to map',
   added: 'Added to the map',
   saveChanges: 'Save changes',
@@ -220,6 +222,8 @@ const el: Dict = {
   notesHint: 'π.χ. πλαϊνή πόρτα, χτυπήστε δύο φορές',
   consent:
     'Συμφωνώ ότι αυτή η τοποθεσία θα είναι ορατή σε όποιον έχει τον σύνδεσμο και τα παραπάνω στοιχεία σε όποιον έχει τον κωδικό της ομάδας. Όλα διαγράφονται αυτόματα από τις 8 Νοεμβρίου 2026.',
+  demoBanner: 'Δοκιμαστική έκδοση: δοκιμάστε την, αλλά μην βάζετε πραγματικά ονόματα ή διευθύνσεις. Κωδικός ομάδας: DEMO',
+  demoConsent: 'Καταλαβαίνω ότι αυτή είναι δοκιμαστική έκδοση: ό,τι γράψω είναι ορατό σε όποιον έχει τον σύνδεσμο και τον κωδικό της ομάδας.',
   addToMap: 'Προσθήκη στον χάρτη',
   added: 'Προστέθηκε στον χάρτη',
   saveChanges: 'Αποθήκευση αλλαγών',

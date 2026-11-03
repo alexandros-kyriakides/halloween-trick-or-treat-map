@@ -34,6 +34,22 @@ Running it again next year (code, AWS and Google Cloud steps): [docs/DEPLOY-AGAI
 
 After that, every `git push` to `main` redeploys automatically.
 
+## Demo site
+
+A second copy of the site for people to try out, at its own address and with its own data. It runs from the `demo` branch with the environment variable `DEMO=true`, which:
+- shows a yellow banner: it's a demo, don't enter real names or addresses, group code `DEMO`;
+- uses the public group code `DEMO` (the `GROUP_CODE` variable is ignored on this branch);
+- never closes, and entries are never deleted automatically;
+- stores everything in its own table, `halloween-map-entries-demo`, separate from the real one.
+
+To set it up (once):
+1. Make sure the `demo` branch exists on GitHub. To update it later, merge `main` into it.
+2. Amplify → the app → **Add branch** (or **Connect branch**) → pick `demo` → **Save and deploy**. The site appears at `https://demo.<app-id>.amplifyapp.com`.
+3. Amplify → **Hosting → Environment variables → Manage variables** → **Add variable** `DEMO`, value `true`, and set it **only for the `demo` branch** (branch override; leave the other branches unset). Then **Redeploy** the `demo` branch.
+4. Google key (Google Cloud → Credentials → the key → Website restrictions): add `https://demo.<app-id>.amplifyapp.com/*`. Without it, the demo falls back to Esri maps.
+
+To clear the demo data, delete the rows in `halloween-map-entries-demo`, or remove any entry from the site with the admin code.
+
 ## Admin code (superuser)
 
 Set `SUPER_CODE` in Amplify → Hosting → Environment variables, then **Redeploy this version**. Use at least 10 letters or digits, different from `GROUP_CODE`, for example `GHOST-LANTERN-7Q4K-2026`; the deploy stops if it's too short. Leave it unset to switch the feature off.

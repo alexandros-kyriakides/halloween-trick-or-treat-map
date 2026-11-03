@@ -395,3 +395,9 @@ test('street name is optional, stored and limited', async () => {
   const pin = await api.call('updateEntry', { streetNumber: '12', id: a.id, editCode: a.editCode, ...CENTER, streetName: '' });
   assert.equal(pin.streetName, null);
 });
+
+test('demo branch (NO_EXPIRY): entries are stored without an expiry time', async () => {
+  const demo = createSimBackend({ env: { ...ENV, NO_EXPIRY: 'true' } });
+  const r = await demo.call('createEntry', { groupCode: 'TESTCODE', consent: true, ...CENTER, streetNumber: '3' });
+  assert.equal(demo.table.get(r.id).expiresAt, undefined);
+});

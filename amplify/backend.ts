@@ -24,9 +24,15 @@ const table = new Table(stack, 'EntriesTable', {
 
 backend.data.addDynamoDbDataSource('EntriesTable', table);
 
+// Demo mode: set DEMO=true for the demo branch only (Amplify -> Hosting -> Environment variables,
+// branch override). That branch gets its own table (halloween-map-entries-demo), the public group
+// code DEMO, a map that never closes and entries that are never deleted automatically.
+const demo = process.env.DEMO === 'true';
+const DEMO_GROUP_CODE = 'DEMO';
+
 // The group code comes from the Amplify console (Hosting -> Environment variables -> GROUP_CODE)
 // so it is never stored in the repository. Stop the deploy if it is missing.
-const groupCode = (process.env.GROUP_CODE ?? '').trim();
+const groupCode = demo ? DEMO_GROUP_CODE : (process.env.GROUP_CODE ?? '').trim();
 if (!groupCode) {
   throw new Error(
     'GROUP_CODE is not set. In the Amplify console open Hosting -> Environment variables, ' +
@@ -48,6 +54,7 @@ if (superCode && norm(superCode) === norm(groupCode)) {
 // Settings readable by the resolvers as ctx.env.*
 backend.data.resources.cfnResources.cfnGraphqlApi.environmentVariables = {
   ...EVENT_SETTINGS,
+  ...(demo ? { HIDE_AT: '2100-01-01T00:00:00Z', NO_EXPIRY: 'true' } : {}),
   GROUP_CODE: groupCode,
   ...(superCode ? { SUPER_CODE: superCode } : {}),
 };
