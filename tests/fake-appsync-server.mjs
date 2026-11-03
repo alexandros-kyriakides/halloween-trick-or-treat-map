@@ -13,6 +13,9 @@ const sim = createSimBackend({
   env: {
     ...EVENT_SETTINGS,
     GROUP_CODE: process.env.GROUP_CODE ?? 'TESTCODE',
+    // Demo branch settings, to try demo mode locally: HIDE_AT=2100-01-01T00:00:00Z NO_EXPIRY=true
+    ...(process.env.HIDE_AT ? { HIDE_AT: process.env.HIDE_AT } : {}),
+    ...(process.env.NO_EXPIRY ? { NO_EXPIRY: process.env.NO_EXPIRY } : {}),
     ...(process.env.SUPER_CODE ? { SUPER_CODE: process.env.SUPER_CODE } : {}),
   },
 });

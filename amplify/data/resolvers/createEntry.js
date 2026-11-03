@@ -104,8 +104,11 @@ export function request(ctx) {
     editCode: makeCode(),
     createdAt: now,
     updatedAt: now,
-    expiresAt: Math.floor(util.time.parseISO8601ToEpochMilliSeconds(ctx.env.DELETE_AT) / 1000),
   };
+  // DynamoDB deletes items whose expiresAt has passed. The demo branch (NO_EXPIRY) keeps its entries.
+  if (ctx.env.NO_EXPIRY !== 'true') {
+    item.expiresAt = Math.floor(util.time.parseISO8601ToEpochMilliSeconds(ctx.env.DELETE_AT) / 1000);
+  }
   for (const field of Object.keys(LIMITS)) {
     const v = cleanText(args[field], field);
     if (v !== null) {

@@ -10,6 +10,8 @@ import { GoogleMapView } from './GoogleMapView';
 
 // Set in Amplify (Hosting -> Environment variables -> VITE_GOOGLE_MAPS_API_KEY). Without it, or if
 // Google rejects the key, the site uses the Esri/Leaflet maps instead.
+// Demo branch (DEMO=true in Amplify): banner at the top, public group code DEMO, no expiry.
+const IS_DEMO = (import.meta.env.DEMO as string | undefined) === 'true';
 const GOOGLE_MAPS_KEY = (import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined)?.trim() ?? '';
 
 // ---------- small persistence helpers (browser storage can be unavailable; never fatal) ----------
@@ -333,6 +335,11 @@ export default function App() {
 
   return (
     <div className="app">
+      {IS_DEMO && (
+        <div className="demo-banner" role="note">
+          {t.demoBanner}
+        </div>
+      )}
       <header className="bar">
         <div className="bar-text">
           <h1>{t.title}</h1>
@@ -817,7 +824,7 @@ function FormSheet(props: {
       {sheet.mode === 'new' && (
         <label className="check check-consent">
           <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
-          <span>{t.consent}</span>
+          <span>{IS_DEMO ? t.demoConsent : t.consent}</span>
         </label>
       )}
       {error && <p className="error">{error}</p>}
