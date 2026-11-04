@@ -4,7 +4,7 @@
 
 ## Overview
 
-The site went from a ChatGPT-written spec to a live AWS app in about 8 hours of active work, spread over short sessions on three days (28–30 Oct 2026). Claude wrote all of the code; ChatGPT wrote the spec and reviewed Claude's work twice. Every step was steered with short prompts, and the site was tested on a phone and a laptop.
+The site went from a ChatGPT-written spec to a live AWS app in about 8 hours of active work, spread over short sessions on three days (28–30 Oct 2026). A public demo site followed on 3 Nov, in under an hour: [https://demo.d16pkk6i6bwic1.amplifyapp.com/](https://demo.d16pkk6i6bwic1.amplifyapp.com/). Claude wrote all of the code; ChatGPT wrote the spec and reviewed Claude's work twice. Every step was steered with short prompts, and the site was tested on a phone and a laptop.
 
 **Who did what** (blue: Claude, orange: ChatGPT, grey: testing and AWS):
 
@@ -35,6 +35,7 @@ ChatGPT wrote and reviewed; Claude built and fixed; files were carried between t
 | 4. Review | 29 Oct | ChatGPT | Reviewed the repo and wrote the issues into `CLAUDE_REVIEW_CONCERNS.md` |
 | 5. Fixes | 29 Oct | Claude | Fixed the issues (PR #1), then a follow-up review (`CLAUDE_FINAL_FOLLOWUP.md`) led to PR #2 |
 | 6. Testing changes | 30 Oct | Claude | 15 PRs from testing: Google Maps, admin code, simpler form, print/PDF, street number |
+| 7. Demo site | 3 Nov | Claude | A `demo` branch with its own address and data, a demo banner and no expiry (PR #20) |
 
 **What made it work:**
 
@@ -45,14 +46,15 @@ ChatGPT wrote and reviewed; Claude built and fixed; files were carried between t
 
 ### Time spent
 
-About 8 hours of active work built the site, estimated from the chat timestamps. A session runs from its first prompt to Claude's last delivery (a zip, a merge or an answer), and a gap of more than 30 minutes between messages starts a new one. Work done between messages, such as setting up Amplify or testing, counts only when it fell inside a session, so the real total may be a little higher.
+About 8 hours of active work built the site, and under an hour more added the demo, estimated from the chat timestamps. A session runs from its first prompt to Claude's last delivery (a zip, a merge or an answer), and a gap of more than 30 minutes between messages starts a new one. Work done between messages, such as setting up Amplify or testing, counts only when it fell inside a session, so the real total may be a little higher.
 
 | Day | Sessions | Active time |
 | --- | --- | --- |
 | Wed 28 Oct | 1 h 36 min decisions and build; 1 h 14 min GitHub and fixes | about 2 h 50 min |
 | Thu 29 Oct | 24 min first ChatGPT review; 5 min and 35 min PR #1 and PR #2 | about 1 h 5 min |
 | Fri 30 Oct | 7 min and 13 min Amplify setup; 8 min, 28 min, 2 h 48 min and 20 min testing changes | about 4 h 5 min |
-| **Total** |  | **about 8 h** |
+| Tue 3 Nov | 51 min demo site | about 51 min |
+| **Total** |  | **about 9 h** |
 
 ## Step 1: the spec (ChatGPT)
 
@@ -188,6 +190,22 @@ Once the site was live on Amplify, it was tested on a phone and a laptop, and ch
 
 Two requests were reversed after testing: the stitched print image (#11, undone by #12) and the tighter print zoom (not done).
 
+## Step 7: a demo site (3 Nov)
+
+After the event, a demo was added so people can try the map without real data: [https://demo.d16pkk6i6bwic1.amplifyapp.com/](https://demo.d16pkk6i6bwic1.amplifyapp.com/), group code `DEMO`. It is the same code as the real site, switched into demo mode by one Amplify setting on the `demo` branch. Amplify gives each branch its own address, its own API and its own DynamoDB table.
+
+| Elapsed | Prompt (summary) | Result |
+| --- | --- | --- |
+| 0 | Create a demo branch on its own address, with a banner saying it's a demo and not to use real data. What do I do in Amplify? | Demo mode: yellow banner, public group code `DEMO`, its own table; Amplify steps |
+| +1 min | The demo must use a separate table without expiry. | Demo entries get no expiry time and the demo map never closes (PR #20) |
+| +8 min | Can you do step 1 yourself? | Claude merged PR #20 and created the `demo` branch on GitHub |
+| +18 min | (screenshot of the Amplify variables) Should `DEMO` be `false` for all branches? | Yes: with `true` for all branches, the real site would switch to demo mode too |
+| +20 min | Why change the admin code? | Not urgent: the real site is closed and the demo holds only test data |
+| +42 min | The demo works, though I didn't change anything in Google. | It works on the Esri fallback map; Google needs the demo address in the key's website list |
+| +51 min | Can I use `https://*.d16pkk6i6bwic1.amplifyapp.com/*` instead? | Yes: one wildcard entry covers every branch of the app |
+
+**What the demo does differently** (all from `DEMO=true`): a yellow banner in English and Greek; the public group code `DEMO`; a map that never closes; entries stored without an expiry time; demo wording in the consent checkbox; its data in `halloween-map-entries-demo`, separate from the real table.
+
 ## Appendix: files passed between the tools
 
 Every hand-off between ChatGPT and Claude was a file carried across by hand.
@@ -206,7 +224,7 @@ Every hand-off between ChatGPT and Claude was a file carried across by hand.
 
 The five Markdown files are reproduced in full in Appendices A–E below.
 
-From PR #1 on, Claude pushed branches and opened and merged pull requests on GitHub itself; Amplify deployed each merge to `main`. The repository ended with 17 merged pull requests and 27 backend tests.
+From PR #1 on, Claude pushed branches and opened and merged pull requests on GitHub itself; Amplify deployed each merge to `main`. By 3 Nov the repository had 20 merged pull requests (17 for the event, 2 for these documents, 1 for the demo) and 28 backend tests.
 
 
 ## Appendix A: SPEC.md (written by ChatGPT)

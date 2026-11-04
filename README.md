@@ -13,6 +13,8 @@ How this site was built with ChatGPT and Claude, step by step: [docs/HOW-IT-WAS-
 
 Running it again next year (code, AWS and Google Cloud steps): [docs/DEPLOY-AGAIN.md](docs/DEPLOY-AGAIN.md).
 
+**Try it:** the demo site at [https://demo.d16pkk6i6bwic1.amplifyapp.com/](https://demo.d16pkk6i6bwic1.amplifyapp.com/), group code `DEMO`. Don't enter real names or addresses.
+
 ## Deploy (about 15 minutes)
 
 1. Create an empty **private** repository on GitHub, e.g. `halloween-map`.
@@ -36,7 +38,7 @@ After that, every `git push` to `main` redeploys automatically.
 
 ## Demo site
 
-A second copy of the site for people to try out, at its own address and with its own data. It runs from the `demo` branch with the environment variable `DEMO=true`, which:
+A second copy of the site for people to try out, at its own address and with its own data: [https://demo.d16pkk6i6bwic1.amplifyapp.com/](https://demo.d16pkk6i6bwic1.amplifyapp.com/). It runs from the `demo` branch with the environment variable `DEMO=true`, which:
 - shows a yellow banner: it's a demo, don't enter real names or addresses, group code `DEMO`;
 - uses the public group code `DEMO` (the `GROUP_CODE` variable is ignored on this branch);
 - never closes, and entries are never deleted automatically;
@@ -45,8 +47,11 @@ A second copy of the site for people to try out, at its own address and with its
 To set it up (once):
 1. Make sure the `demo` branch exists on GitHub. To update it later, merge `main` into it.
 2. Amplify → the app → **Add branch** (or **Connect branch**) → pick `demo` → **Save and deploy**. The site appears at `https://demo.<app-id>.amplifyapp.com`.
-3. Amplify → **Hosting → Environment variables → Manage variables** → **Add variable** `DEMO`, value `true`, and set it **only for the `demo` branch** (branch override; leave the other branches unset). Then **Redeploy** the `demo` branch.
-4. Google key (Google Cloud → Credentials → the key → Website restrictions): add `https://demo.<app-id>.amplifyapp.com/*`. Without it, the demo falls back to Esri maps.
+3. Amplify → **Hosting → Environment variables → Manage variables** → **Add variable** `DEMO`:
+   - the row for **All branches**: value `false`. Amplify keeps a value for all branches next to each branch override, so make sure this one is `false`: with `true`, the real site on `main` would also switch to demo mode, reopen with the public group code `DEMO`, and show the real homes still in its table.
+   - **Add variable override** for the `demo` branch: value `true`.
+   - **Save**, then **Redeploy** the `demo` branch. The demo has worked once it shows the yellow banner; the real site must not show it.
+4. Google key (Google Cloud → APIs & Services → Credentials → the key → Application restrictions → Websites): one entry `https://*.<app-id>.amplifyapp.com/*` covers every branch of the app, `main` and `demo` included. Only your own branches use addresses under your app id. Without a matching entry, the demo still works but falls back to Esri maps (the bottom-right corner then says "Leaflet | Imagery © Esri…").
 
 To clear the demo data, delete the rows in `halloween-map-entries-demo`, or remove any entry from the site with the admin code.
 

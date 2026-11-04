@@ -50,6 +50,7 @@ npm run build
    - `GROUP_CODE`: set a **new** code for this year. Never `31OCT` (it is in the git history), and not last year's.
    - `SUPER_CODE`: set a new admin code, at least 10 letters or digits and different from `GROUP_CODE`. Leave it out to switch admin editing off.
    - `VITE_GOOGLE_MAPS_API_KEY`: keep it, unless you create a new key in step 3.
+   - `DEMO`: leave it as it is: `false` for all branches, `true` only as the override for the `demo` branch. If it reads `true` for all branches, the real site turns into the demo.
    - **Save.**
 3. **Check that Amplify can still read the repository:** the app page should list the `main` branch with its last build. If the next build fails because Amplify can't reach GitHub (for example, its GitHub access was revoked), reconnect the repository in the app's settings.
 4. **Deploy:** merging the step 1 changes starts a build. If the code was already merged, use **Hosting → Deployments → Redeploy this version**. A build takes about 10 minutes. Each deploy also renews the public API key, which lasts 45 days from the deploy.
@@ -83,7 +84,7 @@ npm run build
 2. **Billing:** the project must still be linked to an active billing account, or Google stops serving maps.
 3. **APIs & Services → Enabled APIs:** both **Maps JavaScript API** (the live map) and **Maps Static API** (the print/PDF image) must be enabled.
 4. **APIs & Services → Credentials →** the key:
-   - **Application restrictions → Websites:** `https://main.<app-id>.amplifyapp.com/*` with the current site address.
+   - **Application restrictions → Websites:** `https://*.<app-id>.amplifyapp.com/*` with the current app id. The `*` covers every branch, the demo included.
    - **API restrictions:** only Maps JavaScript API and Maps Static API.
 
 If the key was deleted, follow 3B.
@@ -93,7 +94,7 @@ If the key was deleted, follow 3B.
 1. https://console.cloud.google.com → **Create project**, e.g. `halloween-map`, and **link a billing account**. Google requires billing even for usage inside its free monthly allowance.
 2. **APIs & Services → Library:** enable **Maps JavaScript API** and **Maps Static API**.
 3. **APIs & Services → Credentials → Create credentials → API key.** Edit the key:
-   - **Application restrictions → Websites:** add `https://main.<app-id>.amplifyapp.com/*`.
+   - **Application restrictions → Websites:** add `https://*.<app-id>.amplifyapp.com/*`, which covers `main`, `demo` and any other branch of the app.
    - **API restrictions → Restrict key:** tick only Maps JavaScript API and Maps Static API.
 4. **Put the key in Amplify:** Hosting → Environment variables → `VITE_GOOGLE_MAPS_API_KEY` → Save, then **Redeploy this version**. The key is built into the website, so it only takes effect after a new build.
 
@@ -118,9 +119,17 @@ The key is visible in the web page, as for every site that uses Google Maps. The
      ```
 5. **Share it:** send the site address and the group code to the Viber group admin. Hosts add their homes; parents use the same link on the night.
 
+## Demo site
+
+The demo ([https://demo.d16pkk6i6bwic1.amplifyapp.com/](https://demo.d16pkk6i6bwic1.amplifyapp.com/), group code `DEMO`) runs from the `demo` branch with `DEMO=true`. It never closes and its entries are never deleted automatically, so it needs no yearly date changes. The README's "Demo site" section has the full setup.
+
+- **Same Amplify app kept:** the demo keeps running. To give it this year's code changes, merge `main` into `demo` (or ask Claude to); Amplify rebuilds it. Its data stays in `halloween-map-entries-demo`.
+- **Amplify app created again (step 2B):** connect the `demo` branch again and set up `DEMO` as in the README (`false` for all branches, `true` for `demo`). The new app id gives the demo a new address, and the Google key's wildcard entry must use the new app id.
+- **Clearing old demo entries:** remove them from the site with the admin code, or delete the rows in `halloween-map-entries-demo` in the DynamoDB console.
+
 ## 5. After the event
 
-- **Nothing to do for the map:** at `HIDE_AT` the server stops showing homes and refuses changes, even with the admin code.
+- **Nothing to do for the map:** the demo site keeps running; on the real site, at `HIDE_AT` the server stops showing homes and refuses changes, even with the admin code.
 - **Data:** each home is stamped with `DELETE_AT`, and DynamoDB deletes it on its own, usually within a few days of that time. To keep a copy first, use DynamoDB **Export to S3**, or save the scan output to a file.
 - **Optional:**
   - **Remove everything:** delete the Amplify app (App settings → General → Delete app). This also deletes the table and anything still in it.
